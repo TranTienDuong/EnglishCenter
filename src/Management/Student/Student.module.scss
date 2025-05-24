@@ -1,0 +1,225 @@
+@use "../../assets/remConverter" as *;
+@use "sass:color";
+
+.student {
+  width: 100%;
+  color: black;
+
+  h1 {
+    font-size: rem(24);
+    margin-bottom: rem(20);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: rem(10);
+
+    h2 {
+      font-size: rem(24);
+    }
+
+    button {
+      background-color: #ffffff;
+      padding: rem(5);
+      border: 1px solid black;
+      border-radius: rem(5);
+      cursor: pointer;
+    }
+  }
+
+  .search {
+    width: 50%;
+    display: flex;
+
+    margin-bottom: rem(20);
+    align-items: center;
+
+    input {
+      width: 50%;
+      padding: rem(10);
+      color: #0c0b0b;
+      border: 1px solid #393e46;
+      background-color: #ffffff;
+      border-radius: rem(5);
+      outline: none;
+      margin-left: rem(20);
+    }
+
+    #new_student_btn {
+      width: 200px;
+      height: 45px;
+      border-radius: 5px;
+      background-color: greenyellow;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .container {
+    display: flex;
+    gap: rem(20);
+    position: relative;
+
+    table {
+      width: 100%;
+      max-height: 60vh;
+      border-collapse: collapse;
+
+      thead {
+        background-color: #1c2f4e;
+        color: #eeeeee;
+
+        th {
+          padding: rem(10);
+          text-align: left;
+          font-weight: 500;
+          font-size: rem(18);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #e2e5e9;
+
+          td {
+            padding: rem(10);
+            text-align: left;
+            overflow: auto;
+          }
+
+          &:hover {
+            background-color: #cccccc;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+
+    .edit {
+      width: 30%;
+      height: 86vh;
+      background-color: #1c2f4e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: rem(20);
+      border-radius: rem(10);
+      overflow: auto;
+      position: fixed;
+      top: 10vh;
+      right: 2%;
+      animation: slideIn 0.3s ease-out;
+
+      @keyframes slideIn {
+        0% {
+          transform: translateX(100%);
+        }
+
+        100% {
+          transform: translateX(0%);
+        }
+      }
+
+      .header {
+        display: flex;
+        button {
+          width: 10%;
+          height: 60%;
+          margin-left: auto;
+          margin-top: 0 !important;
+          background-color: red;
+          color: white;
+
+          &:hover {
+            background-color: color.adjust(
+              red,
+              $lightness: -10%
+            ); // Darken button on hover
+            transform: scale(1.05); // Slightly enlarge button on hover
+          }
+        }
+      }
+
+      input,
+      select {
+        width: 100%;
+        height: rem(50);
+        border-radius: rem(10);
+        padding: rem(15);
+        background-color: #222831;
+        color: #eeeeee;
+      }
+
+      .button-group {
+        display: flex;
+        gap: rem(10);
+        margin-top: rem(30);
+
+        button {
+          flex: 1;
+          height: rem(50);
+          border-radius: rem(10);
+          font-size: rem(18);
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+
+        .save-btn {
+          background-color: #4caf50;
+          color: white;
+
+          &:hover {
+            background-color: color.adjust(#4caf50, $lightness: -10%);
+          }
+        }
+
+        .delete-btn {
+          background-color: #f44336;
+          color: white;
+
+          &:hover {
+            background-color: color.adjust(#f44336, $lightness: -10%);
+          }
+        }
+      }
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      margin-top: rem(10);
+    }
+    input,
+    select {
+      width: 60%;
+      padding: rem(10);
+      border: 1px solid black;
+      border-radius: rem(5);
+      background-color: #ffffff;
+      color: rgb(0, 0, 0);
+    }
+
+    button {
+      width: 60%;
+      padding: rem(10);
+      border-radius: rem(5);
+      background-color: green;
+      color: white;
+      margin-top: rem(30);
+      cursor: pointer;
+    }
+  }
+}

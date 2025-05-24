@@ -1,0 +1,15 @@
+
+.homePage {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    
+    section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 0; /* Removed padding to allow full width */
+    }
+  }

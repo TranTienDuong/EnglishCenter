@@ -1,0 +1,65 @@
+@use "../../assets/remConverter" as *;
+
+.container {
+  color: black;
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: rem(20);
+    margin-bottom: rem(20);
+
+    h1 {
+      font-size: rem(24);
+      margin-bottom: rem(20);
+      height: 16px;
+    }
+
+    button {
+      background-color: rgb(255, 255, 255);
+      color: black;
+      border: 1px solid rgb(0, 0, 0);
+      padding: rem(5);
+      border-radius: rem(10);
+      cursor: pointer;
+    }
+  }
+  .input_wrapper {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      margin-top: rem(10);
+    }
+    input,
+    select {
+      width: 60%;
+      padding: rem(10);
+      border-radius: rem(5);
+      background-color: #ffffff;
+      color: black;
+      border: 1px solid black;
+    }
+
+    button {
+      width: 60%;
+      padding: rem(10);
+      border-radius: rem(5);
+      background-color: green;
+      color: white;
+      margin-top: rem(30);
+      cursor: pointer;
+    }
+
+    .weekday {
+      width: 100%;
+      display: flex;
+      gap: rem(50);
+
+      #day {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+}

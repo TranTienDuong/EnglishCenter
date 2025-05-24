@@ -1,0 +1,108 @@
+
+.footer {
+    background-color: #111827;
+    color: white;
+    padding-top: 4rem;
+    padding-bottom: 2rem;
+  }
+  
+  .footerGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .footerColumn {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .footerTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .footerText {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+  }
+  
+  .socialIcons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .socialIcon {
+    color: #9ca3af;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: white;
+    }
+  }
+  
+  .icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .footerHeading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .footerLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .footerLink {
+    color: #9ca3af;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: white;
+    }
+  }
+  
+  .contactInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .contactItem {
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .contactIcon {
+    margin-right: 0.5rem;
+  }
+  
+  .contactText {
+    color: #9ca3af;
+  }
+  
+  .footerBottom {
+    border-top: 1px solid #374151;
+    padding-top: 2rem;
+    text-align: center;
+  }
+  
+  .copyright {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }

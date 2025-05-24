@@ -1,0 +1,118 @@
+
+.aboutSection {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+    background-color: #ffffff;
+    width: 100%;
+  }
+  
+  .aboutGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+      padding: 0 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+      padding: 0 4rem;
+    }
+  }
+  
+  .imageContainer {
+    position: relative;
+  }
+  
+  .imageWrapper {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.15);
+  }
+  
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .statsBadge {
+    position: absolute;
+    bottom: -1.5rem;
+    right: -1.5rem;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    display: none;
+    
+    @media (min-width: 768px) {
+      display: block;
+    }
+  }
+  
+  .statsContent {
+    text-align: center;
+  }
+  
+  .statsNumber {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .statsText {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  .contentContainer {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    
+    @media (min-width: 768px) {
+      font-size: 2.25rem;
+    }
+  }
+  
+  .description {
+    font-size: 1.125rem;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+  
+  .featuresGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    
+    @media (min-width: 640px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .featureItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .featureIcon {
+    height: 1.25rem;
+    width: 1.25rem;
+    color: var(--primary);
+  }

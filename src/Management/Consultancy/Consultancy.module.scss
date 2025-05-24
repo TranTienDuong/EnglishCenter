@@ -1,0 +1,82 @@
+@use "../../assets/remConverter" as *;
+@use "sass:color";
+
+.consultancy {
+  width: 100%;
+  color: black;
+
+  h1 {
+    font-size: rem(24);
+    margin-bottom: rem(20);
+  }
+
+  .container {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      thead {
+        background-color: #1c2f4e;
+        color: #eeeeee;
+
+        th {
+          padding: rem(10);
+          text-align: left;
+          font-weight: 500;
+          font-size: rem(15);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #e7e7e7;
+
+          td {
+            padding: rem(10);
+            text-align: left;
+            overflow: auto;
+            font-size: rem(15);
+
+            &.done {
+              color: #5ed883;
+
+              button {
+                background-color: #616662;
+                color: #eeeeee;
+                border-radius: rem(5);
+                cursor: not-allowed;
+              }
+            }
+
+            &.waiting {
+              color: #ff5733;
+              button {
+                background-color: #50c969;
+                color: #eeeeee;
+                border-radius: rem(5);
+                cursor: pointer;
+              }
+            }
+          }
+
+          &:hover {
+            background-color: #e2e2e2;
+            cursor: pointer;
+          }
+        }
+      }
+      button {
+        padding: rem(5);
+        border: none;
+        background-color: #1a9e42;
+        color: #eeeeee;
+        border-radius: rem(5);
+        outline: none;
+        cursor: pointer;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+}

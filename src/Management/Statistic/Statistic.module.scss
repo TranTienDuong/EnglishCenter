@@ -1,0 +1,113 @@
+@use "../../assets/remConverter" as *;
+
+.container {
+  width: 100%;
+  height: 90vh;
+  color: black;
+  display: flex;
+  gap: rem(50);
+
+  .left_section {
+  height: 100%;
+  width: 40%;
+
+  .mark_wrapper {
+    font-size: rem(18);
+    background-color: rgb(255, 230, 190);
+    width: 100%;
+    height: 100%;
+    border-radius: rem(20);
+    padding: rem(20);
+
+    h1 {
+      font-size: rem(24);
+      margin-bottom: rem(20);
+      border-bottom: 1px solid black;
+    }
+
+    div {
+      overflow: auto;
+      max-height: 90%;
+
+      table {
+        width: 100%;
+        height: 100%;
+        border-collapse: collapse;
+
+        tbody {
+          tr {
+            border: 1px solid black;
+            background-color: rgb(243, 255, 190);
+            cursor: pointer;
+
+            &:hover {
+              background-color: rgb(255, 253, 110);
+            }
+          }
+
+          td {
+            border: 1px solid black;
+            padding: rem(10);
+            text-align: left;
+          }
+        }
+      }
+    }
+
+    .course_section {
+      margin-bottom: rem(30);
+
+      h2 {
+        font-size: rem(20);
+        margin-bottom: rem(10);
+        color: #2c3e50;
+        border-left: 4px solid #000;
+        padding-left: rem(10);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+
+        thead {
+          tr {
+            background-color: #f0f0f0;
+
+            th {
+              padding: rem(10);
+              text-align: left;
+              border: 1px solid black;
+            }
+          }
+        }
+
+        tbody {
+          tr {
+            background-color: rgb(243, 255, 190);
+            cursor: pointer;
+
+            &:hover {
+              background-color: rgb(255, 253, 110);
+            }
+          }
+
+          td {
+            padding: rem(10);
+            border: 1px solid black;
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+  .right_section {
+    height: 45%;
+    width: 60%;
+  }
+  .no_of_student{
+    margin-top: rem(30);
+  }
+}

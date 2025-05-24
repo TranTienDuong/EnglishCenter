@@ -1,0 +1,129 @@
+@use "../../assets/remConverter" as *;
+
+.signup {
+  width: 100%;
+  position: relative;
+  color: black;
+
+  h1 {
+    font-size: rem(24);
+    margin-bottom: rem(20);
+  }
+
+  .search {
+    width: 50%;
+    display: flex;
+
+    margin-bottom: rem(20);
+    align-items: center;
+
+    input {
+      width: 90%;
+      padding: rem(10);
+      color: #000000;
+      border: 1px solid #d1d1d1;
+      background-color: #ffffff;
+      border-radius: rem(5);
+      outline: none;
+      margin-left: rem(20);
+    }
+  }
+
+  .container {
+    display: flex;
+    gap: rem(20);
+
+    table {
+      width: 100%;
+      max-height: 60vh;
+      border-collapse: collapse;
+
+      thead {
+        background-color: #1c2f4e;
+        color: #eeeeee;
+
+        th {
+          padding: rem(10);
+          text-align: left;
+          font-weight: 500;
+          font-size: rem(18);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #d6d6d6;
+
+          td {
+            padding: rem(10);
+            text-align: left;
+            overflow: auto;
+          }
+
+          &:hover {
+            background-color: #cacaca;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+}
+.overlay {
+  position: absolute;
+  width: 75%;
+  height: 90vh;
+  background-color: #ffffff00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .wrapper {
+    border: 1px solid rgba(182, 182, 182, 0.068);
+    padding: rem(32);
+    width: 50%;
+    border-radius: rem(8);
+    background-color: rgb(243, 243, 243);
+    color: black;
+    opacity: 0; /* Hidden by default */
+    transform: scale(0.9); /* Slightly shrink the element */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Transition both opacity and scale */
+
+    .function_btn {
+      display: flex;
+      justify-content: end;
+      button {
+        margin: 0 rem(10);
+        padding: rem(10) rem(15);
+        border-radius: rem(8);
+        color: white;
+        cursor: pointer;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+
+    h1,
+    h2 {
+      font-size: rem(18);
+    }
+
+    #check {
+      background-color: rgb(160, 236, 45);
+    }
+
+    #x {
+      background-color: rgb(235, 69, 69);
+    }
+    #delete {
+  background-color: rgb(235, 69, 69);
+}
+
+    &.show {
+      opacity: 1; /* Fully visible */
+      transform: scale(1); /* Full size */
+    }
+  }
+}

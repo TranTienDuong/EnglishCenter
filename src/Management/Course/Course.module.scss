@@ -1,0 +1,121 @@
+@use "../../assets/remConverter" as *;
+@use "sass:color";
+.course {
+  color: black;
+  h1 {
+    font-size: rem(24);
+    margin-bottom: rem(20);
+  }
+
+  .course_list {
+    display: flex;
+    justify-content: center;
+    gap: rem(20);
+    position: relative;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: #1c2f4e;
+        color: #eeeeee;
+
+        th {
+          padding: rem(10);
+          text-align: left;
+          font-weight: 500;
+          font-size: rem(18);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #c4c4c5;
+
+          td {
+            padding: rem(10);
+            text-align: left;
+          }
+
+          &:hover {
+            background-color: #bebebe;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+
+    .edit {
+      width: 30%;
+      height: 70vh;
+      background-color: #1c2f4e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: rem(20);
+      border-radius: rem(10);
+      overflow: auto;
+      position: absolute;
+      top: -10%;
+      right: 0;
+      animation: slideIn 0.3s ease-out;
+
+      @keyframes slideIn {
+        0% {
+          transform: translateX(5%);
+        }
+
+        100% {
+          transform: translateX(0%);
+        }
+      }
+
+      .header {
+        display: flex;
+        button {
+          width: 10%;
+          height: 60%;
+          margin-left: auto;
+          margin-top: 0 !important;
+          background-color: red;
+
+          &:hover {
+            background-color: color.adjust(red, $lightness: -10%); 
+            transform: scale(1.05); // Slightly enlarge button on hover
+          }
+        }
+      }
+
+      input,
+      select {
+        width: 100%;
+        height: rem(50);
+        border-radius: rem(10);
+        padding: rem(15);
+        background-color: #222831;
+        color: #eeeeee;
+        margin-bottom: rem(10);
+        margin-top: rem(3);
+      }
+
+      button {
+        width: 100%;
+        height: rem(50); // Reduced height to a more standard button size
+        border-radius: rem(10);
+        background-color: #4caf50;
+        font-size: rem(18);
+        margin-top: auto;
+        color: #eeeeee;
+        font-weight: 500;
+        cursor: pointer; // Added cursor pointer for better UX
+        transition: all 0.3s ease; // Added transition for smooth hover effect
+
+        &:hover {
+          background-color: color.adjust(#4caf50, $lightness: -10%); 
+          transform: scale(1.05); // Slightly enlarge button on hover
+        }
+      }
+    }
+  }
+}
