@@ -9,6 +9,7 @@ import Error from "./Error/Error.jsx";
 import Login from "./Login/Login";
 import ProtectedRoute from "./Management/ProtectedRoute.jsx";
 import Dashboard from "./Management/Dashboard/Dashboard.jsx";
+import Test from "./Test/Test";
 
 // Khởi tạo router
 const router = createBrowserRouter([
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/test",
+    element: <Test />,
   },
   {
     path: "/dashboard",

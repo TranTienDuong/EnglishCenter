@@ -1,13 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import classes from "./ClassDetail.module.scss";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ExcelExport from "../../assets/ExcelExport.jsx";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/flatpickr.css";
+import { format } from 'date-fns';
 
-export const ClassDetail = ({ detail, setIsClassDetail, refreshClasses, currentUserId }) => {
+export const ClassDetail = ({
+  detail,
+  setIsClassDetail,
+  refreshClasses,
+  currentUserId,
+}) => {
   const [detailState, setDetailState] = useState(detail);
   const [isMarking, setIsMarking] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [changeMark, setChangeMark] = useState(null);
   const [dqt, setDqt] = useState(null);
   const [dck, setDck] = useState(null);
@@ -17,9 +27,37 @@ export const ClassDetail = ({ detail, setIsClassDetail, refreshClasses, currentU
   const [allClasses, setAllClasses] = useState([]); // danh sách lớp khác
   const [classEnded, setClassEnded] = useState(false);
 
-  const role = sessionStorage.getItem("role");
+  const [editState, setEditState] = useState({
+  tenkhoahoc: '',
+  tenlophoc: '',
+  thoigianhoc: '',
+  ngaykhaigiang: '',
+  magiaovien: '',
+});
+  const [courseData, setCourseData] = useState([]);
+  const [teacherData, setTeacherData] = useState([]);
 
-  React.useEffect(() => {
+  const role = sessionStorage.getItem("role");
+  const columns = [
+    { header: "Họ và tên", accessor: "hoten" },
+    { header: "Điểm quá trình", accessor: "diemkiemtra" },
+    { header: "Điểm cuối kì", accessor: "diemdiemcuoiki" },
+    { header: "Điểm tổng kết", accessor: "diemtongket" },
+    { header: "Trạng thái", accessor: "trangThai" },
+  ];
+useEffect(() => {
+  if (detail) {
+    setDetailState({
+      ...detail,
+      ngaykhaigiang: new Date(detail.ngaykhaigiang),
+      magiaovien: detailState.giangVien[0].manguoidung.toString(),
+    });
+  }
+  setTeacherData(detailState.giangVien);
+  setEditState(detail);
+}, [detail,detailState.giangVien]);
+
+  useEffect(() => {
     if (changeMark) {
       setDqt(
         changeMark.diemkiemtra !== null && changeMark.diemkiemtra !== undefined
@@ -33,7 +71,53 @@ export const ClassDetail = ({ detail, setIsClassDetail, refreshClasses, currentU
           : ""
       );
     }
+    fetchClassDetail();
   }, [changeMark]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/v1/khoahoc")
+      .then((res) => {
+        setCourseData(res.data);
+      })
+      .catch((error) => {
+        console.log("Error fetching course: ", error);
+      });
+  }, []);
+
+  useEffect(() => {
+  if (
+    editState.tenkhoahoc &&
+    detailState.thuhoc &&
+    detailState.cahoc &&
+    editState.ngaykhaigiang
+  ) {
+    if (editState.ngaykhaigiang !== detail.ngaykhaigiang) {
+      axios
+        .get(`http://localhost:8080/api/v1/nguoidung/giaovientronglich`, {
+          params: {
+            tenKhoaHoc: editState.tenkhoahoc,
+            thuHoc: detailState.thuhoc,
+            caHoc: detailState.cahoc,
+            ngayKhaiGiang: editState.ngaykhaigiang,
+          },
+        })
+        .then((res) => {
+          console.log("Danh sách giáo viên trống lịch:", res.data);
+          setTeacherData(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy danh sách giáo viên", err);
+        });
+    } else {
+      // Ngày không thay đổi → giữ nguyên giáo viên cũ
+      setTeacherData(detail?.giangVien || []);
+    }
+  }
+}, [ editState.tenkhoahoc, detailState.thuhoc, detailState.cahoc, editState.ngaykhaigiang,
+]);
+
+
 
   const fetchClassDetail = async () => {
     try {
@@ -145,31 +229,30 @@ export const ClassDetail = ({ detail, setIsClassDetail, refreshClasses, currentU
   };
 
   const getTrangThaiHocVien = (hv, tenKhoa) => {
-  if (hv.trangThai === "Chuyển Lớp") return "Chuyển Lớp";
+    if (hv.trangThai === "Chuyển Lớp") return "Chuyển Lớp";
 
-  // Parse điểm
-  const dqt = parseFloat(hv.diemkiemtra);
-  const dck = parseFloat(hv.diemdiemcuoiki);
+    // Parse điểm
+    const dqt = parseFloat(hv.diemkiemtra);
+    const dck = parseFloat(hv.diemdiemcuoiki);
 
-  // Xác định mức điểm đạt tối thiểu theo tên khóa
-  let diemDatToiThieu = 4; // mặc định thấp nhất
+    // Xác định mức điểm đạt tối thiểu theo tên khóa
+    let diemDatToiThieu = 4; // mặc định thấp nhất
 
-  if (tenKhoa?.includes("7.0+")) {
-    diemDatToiThieu = 7;
-  } else if (tenKhoa?.includes("6.0-6.5")) {
-    diemDatToiThieu = 6;
-  } else if (tenKhoa?.includes("5.0-5.5")) {
-    diemDatToiThieu = 5;
-  }
+    if (tenKhoa?.includes("7.0+")) {
+      diemDatToiThieu = 7;
+    } else if (tenKhoa?.includes("6.0-6.5")) {
+      diemDatToiThieu = 6;
+    } else if (tenKhoa?.includes("5.0-5.5")) {
+      diemDatToiThieu = 5;
+    }
 
-  // Tính trạng thái
-  if (!isNaN(dqt) && !isNaN(dck)) {
-    const avg = (dqt + dck) / 2;
-    return avg >= diemDatToiThieu ? "Đạt" : "Không Đạt";
-  }
-  return "Đang Học";
-};
-
+    // Tính trạng thái
+    if (!isNaN(dqt) && !isNaN(dck)) {
+      const avg = (dqt + dck) / 2;
+      return avg >= diemDatToiThieu ? "Đạt" : "Không Đạt";
+    }
+    return "Đang Học";
+  };
 
   const handleDeleteStudent = async () => {
     if (!transferStudent) return;
@@ -274,97 +357,261 @@ export const ClassDetail = ({ detail, setIsClassDetail, refreshClasses, currentU
     }
   };
   function getNextKhoaHoc(tenKhoaHoc) {
-  const nextMap = {
-    "Khóa IELTS mất gốc": "Khóa IELTS 5.0-5.5",
-    "Khóa IELTS cấp tốc": "Khóa IELTS 5.0-5.5",
-    "Khóa IELTS 5.0-5.5": "Khóa IELTS 6.0-6.5",
-    "Khóa IELTS 6.0-6.5": "Khóa IELTS 7.0+",
-    "Khóa IELTS 7.0+": "Khóa IELTS 7.0+", // không lên thêm nữa
+    const nextMap = {
+      "Khóa IELTS mất gốc": "Khóa IELTS 5.0-5.5",
+      "Khóa IELTS cấp tốc": "Khóa IELTS 5.0-5.5",
+      "Khóa IELTS 5.0-5.5": "Khóa IELTS 6.0-6.5",
+      "Khóa IELTS 6.0-6.5": "Khóa IELTS 7.0+",
+      "Khóa IELTS 7.0+": "Khóa IELTS 7.0+", // không lên thêm nữa
+    };
+
+    return nextMap[tenKhoaHoc] || tenKhoaHoc;
+  }
+
+  const handleDangKyHocTiep = async (
+    manguoidung,
+    currentKhoaHoc,
+    trangThai
+  ) => {
+    try {
+      // 1. Lấy thông tin người dùng
+      const resNguoiDung = await fetch(
+        `http://localhost:8080/api/v1/nguoidung/${manguoidung}`
+      );
+      if (!resNguoiDung.ok) throw new Error("Không lấy được người dùng");
+      const nguoiDung = await resNguoiDung.json();
+
+      // 2. Lấy danh sách xác nhận
+      const resXacNhan = await fetch("http://localhost:8080/api/v1/xacnhan");
+      if (!resXacNhan.ok) throw new Error("Không lấy được danh sách xác nhận");
+      const danhSachXacNhan = await resXacNhan.json();
+
+      const resForm = await fetch("http://localhost:8080/api/v1/formnhaphoc");
+      if (!resXacNhan.ok) throw new Error("Không lấy được danh sách xác nhận");
+      const danhSachForm = await resForm.json();
+
+      // 3. So sánh tìm xác nhận trùng
+      const matched = danhSachXacNhan.find(
+        (xn) =>
+          xn.hoten === nguoiDung.hoten &&
+          xn.email === nguoiDung.email &&
+          xn.ngaysinh?.slice(0, 10) === nguoiDung.ngaysinh?.slice(0, 10) &&
+          xn.gioitinh === nguoiDung.gioitinh
+      );
+      const matched2 = danhSachForm.find(
+        (f) =>
+          f.hoten === nguoiDung.hoten &&
+          f.email === nguoiDung.email &&
+          f.ngaysinh?.slice(0, 10) === nguoiDung.ngaysinh?.slice(0, 10) &&
+          f.gioitinh === nguoiDung.gioitinh
+      );
+
+      if (!matched && !matched2) {
+        alert("Không tìm thấy bản ghi xác nhận phù hợp");
+        return;
+      }
+      console.log("Matched:", matched);
+      // 4. Chuẩn bị dữ liệu cập nhật
+      const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+      const khoaHocMoi =
+        trangThai === "Đạt" ? getNextKhoaHoc(currentKhoaHoc) : currentKhoaHoc;
+
+      const bodyUpdate = {
+        ...matched,
+        ngaygui: today,
+        trangthai: "Học Tiếp",
+        tenlophoc: null,
+      };
+      const nextUpdate = {
+        hoten: matched2.hoten,
+        ngaysinh: matched2.ngaysinh,
+        gioitinh: matched2.gioitinh,
+        sdt: matched2.sdt,
+        diachi: matched2.diachi,
+        email: matched2.email,
+        ngaygui: today,
+        trangthai: "Hoàn Thành",
+        tenkhoahoc: khoaHocMoi,
+      };
+
+      // 5. Gửi PUT cập nhật
+      const resUpdate = await fetch(
+        `http://localhost:8080/api/v1/xacnhan/${matched.maxacnhan}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyUpdate),
+        }
+      );
+
+      const resNextUpdate = await fetch(
+        `http://localhost:8080/api/v1/formnhaphoc/${matched2.maform}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextUpdate),
+        }
+      );
+      console.log("Response PUT:", resUpdate);
+      console.log("Response PUT:", resNextUpdate);
+
+      if (!resUpdate.ok && !resNextUpdate.ok)
+        throw new Error("Cập nhật thất bại");
+
+      alert("Đăng ký học tiếp thành công!");
+    } catch (err) {
+      console.error(err);
+      alert("Đã xảy ra lỗi: " + err.message);
+    }
   };
 
-  return nextMap[tenKhoaHoc] || tenKhoaHoc;
-}
+  function DeleteClasses() {
+    if (!detailState) return;
 
-const handleDangKyHocTiep = async (manguoidung, currentKhoaHoc, trangThai) => {
-  try {
-    // 1. Lấy thông tin người dùng
-    const resNguoiDung = await fetch(`http://localhost:8080/api/v1/nguoidung/${manguoidung}`);
-    if (!resNguoiDung.ok) throw new Error("Không lấy được người dùng");
-    const nguoiDung = await resNguoiDung.json();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // 2. Lấy danh sách xác nhận
-    const resXacNhan = await fetch("http://localhost:8080/api/v1/xacnhan");
-    if (!resXacNhan.ok) throw new Error("Không lấy được danh sách xác nhận");
-    const danhSachXacNhan = await resXacNhan.json();
+    const ngayKhaiGiang = new Date(detailState.ngaykhaigiang);
+    ngayKhaiGiang.setHours(0, 0, 0, 0);
 
-    const resForm = await fetch("http://localhost:8080/api/v1/formnhaphoc");
-    if (!resXacNhan.ok) throw new Error("Không lấy được danh sách xác nhận");
-    const danhSachForm = await resForm.json();
+    const ngayKhaiGiangPlus2 = new Date(ngayKhaiGiang);
+    ngayKhaiGiangPlus2.setDate(ngayKhaiGiangPlus2.getDate() + 2);
+    ngayKhaiGiangPlus2.setHours(0, 0, 0, 0);
 
-    // 3. So sánh tìm xác nhận trùng
-    const matched = danhSachXacNhan.find(xn =>
-      xn.hoten === nguoiDung.hoten &&
-      xn.email === nguoiDung.email &&
-      xn.ngaysinh?.slice(0, 10) === nguoiDung.ngaysinh?.slice(0, 10) &&
-      xn.gioitinh === nguoiDung.gioitinh
-    );
-    const matched2 = danhSachForm.find(f =>
-      f.hoten === nguoiDung.hoten &&
-      f.email === nguoiDung.email &&
-      f.ngaysinh?.slice(0, 10) === nguoiDung.ngaysinh?.slice(0, 10) &&
-      f.gioitinh === nguoiDung.gioitinh
-    );
-
-    if (!matched && !matched2) {
-      alert("Không tìm thấy bản ghi xác nhận phù hợp");
+    const ngayKhaiGiangPlus1 = new Date(ngayKhaiGiang);
+    ngayKhaiGiangPlus1.setDate(ngayKhaiGiangPlus1.getDate() - 2);
+    ngayKhaiGiangPlus1.setHours(0, 0, 0, 0);
+    const soHocVienDangHoc = detailState.hocvien.filter(
+      (hv) => hv.trangThai === "Đang Học"
+    ).length;
+    console.log("Số học viên đang học:", soHocVienDangHoc);
+    // Hiển thị cảnh báo nếu trong 2 ngày đầu và số học viên < 10
+    if (
+      (today >= ngayKhaiGiang &&
+        today <= ngayKhaiGiangPlus2 &&
+        soHocVienDangHoc < 10) ||
+      (today >= ngayKhaiGiangPlus1 && soHocVienDangHoc < 10)
+    ) {
+      return (
+        <div style={{ color: "red", marginBottom: "15px" }}>
+          Cảnh báo: Lớp chỉ có {soHocVienDangHoc} học viên, không đủ điều kiện
+          để học. Lớp sẽ tự xóa sau ngày {convertDate(ngayKhaiGiangPlus2)}
+        </div>
+      );
+    }
+    if (ngayKhaiGiangPlus2 < today) {
       return;
     }
-    console.log("Matched:", matched);
-    // 4. Chuẩn bị dữ liệu cập nhật
-    const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
-    const khoaHocMoi = trangThai === "Đạt" ? getNextKhoaHoc(currentKhoaHoc) : currentKhoaHoc;
+    // Tự động xóa lớp nếu quá 2 ngày và học viên < 10
+    // if (today > ngayKhaiGiangPlus2 && soHocVienDangHoc < 10) {
+    //   axios.delete(`http://localhost:8080/api/v1/lophoc/${detailState.malop}`)
+    //     .then((response) => {
+    //       if (response.status === 200) {
+    //         alert("Xóa lớp thành công!");
+    //         if (fetchClassDetail) fetchClassDetail();
+    //       } else {
+    //         alert("Xóa lớp thất bại!");
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       alert("Lỗi khi gọi API xóa lớp: " + error.message);
+    //     });
+    // }
+  }
+  const exportData = detailState.hocvien.map((hv) => {
+    const dqtFloat = parseFloat(hv.diemkiemtra);
+    const dckFloat = parseFloat(hv.diemdiemcuoiki);
+    const diemtongket =
+      !isNaN(dqtFloat) && !isNaN(dckFloat)
+        ? ((dqtFloat + dckFloat) / 2).toFixed(1)
+        : "Chưa có điểm";
 
-    const bodyUpdate = {
-      ...matched,
-      ngaygui: today,
-      trangthai: "Học Tiếp",
-      tenlophoc: null,
+    return {
+      hoten: hv.hoten,
+      diemkiemtra: !isNaN(dqtFloat) ? dqtFloat : "Chưa có điểm",
+      diemdiemcuoiki: !isNaN(dckFloat) ? dckFloat : "Chưa có điểm",
+      diemtongket: diemtongket,
+      trangThai: getTrangThaiHocVien(hv, detailState.tenkhoahoc),
     };
-    const nextUpdate = {
-      hoten: matched2.hoten,
-      ngaysinh: matched2.ngaysinh,
-      gioitinh: matched2.gioitinh,
-      sdt: matched2.sdt,
-      diachi: matched2.diachi,
-      email: matched2.email,
-      ngaygui: today,
-      trangthai: "Hoàn Thành",
-      tenkhoahoc:  khoaHocMoi,
+  });
+  const formatDate = (dateStr) => {
+  return dateStr.replace(/-/g, "/");
+  };
+  const handleEditClass = async () => {
+   try {
+    // 1. Cập nhật thông tin lớp học
+    const updateData = {
+      tenlophoc: editState.tenlophoc,
+      ngaykhaigiang:formatDate(format(editState.ngaykhaigiang, 'dd-MM-yyyy')),
+  
+      thoigianhoc: editState.thoigianhoc,
+      tenkhoahoc: editState.tenkhoahoc,
+    };
+    console.log("Dữ liệu gửi lên:", updateData);
+    await axios.put(
+      `http://localhost:8080/api/v1/lophoc/${detail.malop}`, updateData
+    );
+    if (editState.ngaykhaigiang !== detail.ngaykhaigiang) {
+    const oldGvId = detail.giangVien?.[0]?.manguoidung;
+    if(!editState.magiaovien) {
+      alert("Vui lòng chọn giáo viên trước khi cập nhật lớp học.");
+      return;
+    }
+    console.log("Giáo viên được chọn:", editState.magiaovien);
+    const hotenOnly = editState.magiaovien.split(" - ")[0].trim();
+    console.log("Họ tên giáo viên:", hotenOnly);
+
+    const res = await axios.get("http://localhost:8080/api/v1/nguoidung/getAllGiaoVien");
+    const allGiaoVien = res.data;
+
+    const matchedGv = allGiaoVien.find(gv => gv.hoten === hotenOnly);
+    const magiaovien = matchedGv.manguoidung;
+    console.log("Mã giáo viên:", magiaovien);
+    if (!magiaovien) {
+      alert("Không tìm thấy giáo viên phù hợp.");
+      return;
+    }
+    if (magiaovien !== oldGvId) {
+      for (const gv of detail.giangVien) {
+        await axios.delete(
+          `http://localhost:8080/api/v1/nguoilophoc/${gv.manguoidung}/${detailState.malop}`
+        );
+      }
+      // Thêm giáo viên mới vào lớp
+      await axios.post(
+        `http://localhost:8080/api/v1/nguoilophoc/${magiaovien}/${detailState.malop}`
+      );
+    } 
     }
 
-    // 5. Gửi PUT cập nhật
-    const resUpdate = await fetch(`http://localhost:8080/api/v1/xacnhan/${matched.maxacnhan}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyUpdate)
-    });
-    
-    const resNextUpdate = await fetch(`http://localhost:8080/api/v1/formnhaphoc/${matched2.maform}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nextUpdate)
-    });
-    console.log("Response PUT:", resUpdate);
-    console.log("Response PUT:", resNextUpdate);
-
-    if (!resUpdate.ok && !resNextUpdate.ok) throw new Error("Cập nhật thất bại");
-
-    alert("Đăng ký học tiếp thành công!");
-  } catch (err) {
-    console.error(err);
-    alert("Đã xảy ra lỗi: " + err.message);
+    alert("Cập nhật lớp học thành công!");
+    setEdit(false);
+    refreshClasses();
+    setIsClassDetail(false);
+  } catch (error) {
+    console.error("Lỗi khi cập nhật lớp học:", error);
+    alert("Đã xảy ra lỗi khi cập nhật lớp học.");
   }
 };
+
+const handleOpenEdit = () => {
+  if (detailState) {
+    setEdit(true);
+  }
+};
+const handleDeleteClass = async () => {
+  if (!window.confirm("Bạn có chắc chắn muốn xóa lớp học này không?")) return;
+
+  try {
+    await axios.delete(`http://localhost:8080/api/v1/lophoc/${detailState.malop}`);
+    alert("Xóa lớp học thành công!");
+    refreshClasses();
+    setIsClassDetail(false); 
+  } catch (error) {
+    console.error("Lỗi khi xóa lớp học:", error);
+    alert("Đã xảy ra lỗi khi xóa lớp học.");
+  }
+}
 
   return (
     <div className={classes.container}>
@@ -425,6 +672,12 @@ const handleDangKyHocTiep = async (manguoidung, currentKhoaHoc, trangThai) => {
             <button id={classes.des} onClick={() => handleFilter("des")}>
               Giảm dần
             </button>
+            <ExcelExport
+              columns={columns}
+              data={exportData}
+              fileName={`DiemLop_${detailState.tenlophoc}`}
+              title="Danh sách sinh viên đang học tại trung tâm"
+            />
           </div>
           <table className={classes.bangdiem}>
             <thead>
@@ -441,7 +694,6 @@ const handleDangKyHocTiep = async (manguoidung, currentKhoaHoc, trangThai) => {
               {detailState.hocvien.map((hv, index) => {
                 const dqtFloat = parseFloat(hv.diemkiemtra);
                 const dckFloat = parseFloat(hv.diemdiemcuoiki);
-
 
                 return (
                   <tr
@@ -510,12 +762,19 @@ const handleDangKyHocTiep = async (manguoidung, currentKhoaHoc, trangThai) => {
           </h2>
           {role !== "Học Viên" && (
             <>
+              <DeleteClasses />
               <button
                 id={classes.xemdiem_btn}
                 onClick={() => setIsMarking(true)}
               >
-                Xem điểm
+                Quản lý điểm
               </button>
+              {role === "admin" && (
+                <button id={classes.sua_btn} onClick={handleOpenEdit}>
+                  Sửa thông tin lớp
+                </button>
+              )}
+
               <table>
                 <thead>
                   <tr>
@@ -555,59 +814,189 @@ const handleDangKyHocTiep = async (manguoidung, currentKhoaHoc, trangThai) => {
           )}
           {role === "Học Viên" && (
             <>
-    <table className={classes.bangdiem}>
-      <thead>
-        <tr>
-          <th>STT</th>
-          <th>Tên</th>
-          <th>Điểm quá trình</th>
-          <th>Điểm cuối kì</th>
-          <th>Điểm tổng kết</th>
-          <th>Trạng thái</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {Array.isArray(detailState?.hocvien) &&
-        detailState.hocvien
-          .filter(hv => String(hv.manguoidung) === String(currentUserId))
-          .map((hv, index) => {
-            const dqtFloat = parseFloat(hv.diemkiemtra);
-            const dckFloat = parseFloat(hv.diemdiemcuoiki);
-            const trangThai = getTrangThaiHocVien(hv, detailState.tenkhoahoc);
-            return (
-              <tr key={hv.manguoidung}>
-                <td>{index + 1}</td>
-                <td>{hv.hoten}</td>
-                <td>{!isNaN(dqtFloat) ? dqtFloat : "Chưa có điểm"}</td>
-                <td>{!isNaN(dckFloat) ? dckFloat : "Chưa có điểm"}</td>
-                <td>
-                  {!isNaN(dqtFloat) && !isNaN(dckFloat)
-                    ? ((dqtFloat + dckFloat) / 2).toFixed(1)
-                    : "Chưa có điểm"}
-                </td>
-                <td>{trangThai}</td>
-                <td>
-  {(trangThai === "Đạt" || trangThai === "Không Đạt") && (
-    <button
-      onClick={() => handleDangKyHocTiep(hv.manguoidung, detailState.tenkhoahoc, trangThai)}
-      className={classes.dangkyButton}
-    >
-      Học Tiếp
-    </button>
-  )}
-</td>
-
-              </tr>
-            );
-          })}
-      </tbody>
-    </table>
-  </>
+              <table className={classes.bangdiem}>
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên</th>
+                    <th>Điểm quá trình</th>
+                    <th>Điểm cuối kì</th>
+                    <th>Điểm tổng kết</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(detailState?.hocvien) &&
+                    detailState.hocvien
+                      .filter(
+                        (hv) => String(hv.manguoidung) === String(currentUserId)
+                      )
+                      .map((hv, index) => {
+                        const dqtFloat = parseFloat(hv.diemkiemtra);
+                        const dckFloat = parseFloat(hv.diemdiemcuoiki);
+                        const trangThai = getTrangThaiHocVien(
+                          hv,
+                          detailState.tenkhoahoc
+                        );
+                        return (
+                          <tr key={hv.manguoidung}>
+                            <td>{index + 1}</td>
+                            <td>{hv.hoten}</td>
+                            <td>
+                              {!isNaN(dqtFloat) ? dqtFloat : "Chưa có điểm"}
+                            </td>
+                            <td>
+                              {!isNaN(dckFloat) ? dckFloat : "Chưa có điểm"}
+                            </td>
+                            <td>
+                              {!isNaN(dqtFloat) && !isNaN(dckFloat)
+                                ? ((dqtFloat + dckFloat) / 2).toFixed(1)
+                                : "Chưa có điểm"}
+                            </td>
+                            <td>{trangThai}</td>
+                            <td>
+                              {(trangThai === "Đạt" ||
+                                trangThai === "Không Đạt") && (
+                                <button
+                                  onClick={() =>
+                                    handleDangKyHocTiep(
+                                      hv.manguoidung,
+                                      detailState.tenkhoahoc,
+                                      trangThai
+                                    )
+                                  }
+                                  className={classes.dangkyButton}
+                                >
+                                  Học Tiếp
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                </tbody>
+              </table>
+            </>
+          )}
+          {edit && (
+            <div className={classes.edit} onClick={(e) => e.stopPropagation()}>
+              <div className={classes.header}>
+                <h1>Thông tin lớp học</h1>
+                <button onClick={() => setEdit(false)}>X</button>
+              </div>
+              <label htmlFor="tenkhoahoc">Khóa học</label>
+              <select
+                id="tenkhoahoc"
+                value={editState.tenkhoahoc}
+                onChange={(e) =>
+                  setEditState({
+                    ...editState,
+                    tenkhoahoc: e.target.value,
+                  })
+                }
+              >
+                {courseData.map((course) => (
+                  <option key={course.makhoahoc} value={course.tenkhoahoc}>
+                    {course.tenkhoahoc}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="tenlophoc">Tên lớp</label>
+              <input
+                type="text"
+                id="tenlophoc"
+                placeholder="Tên lớp"
+                value={editState.tenlophoc || ""}
+                onChange={(e) =>
+                  setEditState({
+                    ...editState,
+                    tenlophoc: e.target.value,
+                  })
+                }
+              />
+              <label htmlFor="thoigianhoc">Thời gian học</label>
+              <select
+                id="thoigianhoc"
+                value={editState.thoigianhoc}
+                onChange={(e) =>
+                  setEditState({
+                    ...editState,
+                    thoigianhoc: e.target.value,
+                  })
+                }
+              >
+                <option value="24 buổi">24 buổi</option>
+                <option value="36 buổi">36 buổi</option>
+              </select>
+              <label htmlFor="ngaykhaigiang">Ngày khai giảng</label>
+              <Flatpickr
+                value={editState.ngaykhaigiang} // Convert initial string to Date object
+                onChange={([date]) => {
+                  setEditState({
+                    ...editState,
+                    ngaykhaigiang: format(date, 'yyyy-MM-dd'), // Convert to YYYY-MM-DD
+                  });
+                }}
+              />
+              {teacherData.length > 1 && (
+                <>
+                  <label>Giảng viên</label>
+                  <select
+                    value={editState.magiaovien || ""}
+                    onChange={(e) =>
+                      setEditState({
+                        ...editState,
+                        magiaovien: e.target.value,
+                      })
+                    }
+                  >
+                {teacherData.map((data, index) => (
+                <option key={index} disabled={data.includes("Trùng")}>
+                  {data}
+                </option>
+              ))}
+                </select>
+                </>
+              )
+              }
+              {teacherData.length === 1 && (
+                <>
+                  <label>Giảng viên</label>
+                  <select
+                    value={editState.magiaovien || ""}
+                    onChange={(e) =>
+                      setEditState({
+                        ...editState,
+                        magiaovien: e.target.value,
+                      })
+                    }
+                  >
+                {teacherData.map((gv) => (
+                <option key={gv.manguoidung} value={gv.manguoidung}>
+                  {gv.hoten}
+                </option>
+              ))}
+                </select>
+                </>
+              )
+              }
+              <div className={classes["button-group"]}>
+                <button className={classes["save-btn"]} onClick={handleEditClass}>
+                  Lưu
+                </button>
+                <button
+                  className={classes["delete-btn"]}
+                  onClick={handleDeleteClass}
+                >
+                  Xóa
+                </button>
+              </div>
+            </div>
           )}
         </>
       )}
-      {transferStudent && (
+      {role === "admin" && transferStudent && (
         <div
           className={classes.overlay2}
           onClick={() => {

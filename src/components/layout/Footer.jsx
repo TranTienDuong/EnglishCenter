@@ -13,9 +13,12 @@ const Footer = () => {
               Trung tâm luyện thi IELTS hàng đầu với phương pháp giảng dạy hiệu quả và cam kết đầu ra.
             </p>
             <div className={styles.socialIcons}>
-              <a href="#" className={styles.socialIcon}>
+              <a href="https://www.facebook.com/groups/1191283098906661" className={styles.socialIcon}>
                 <svg className={styles.icon} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.093 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd"></path>
+                  <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438
+                  9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.093 0 2.238.195 2.238.195v2.46h-1.26c-1.243 
+                  0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" 
+                  clipRule="evenodd"></path>
                 </svg>
               </a>
               <a href="#" className={styles.socialIcon}>
@@ -60,7 +63,7 @@ const Footer = () => {
             <ul className={styles.contactInfo}>
               <li className={styles.contactItem}>
                 <span className={styles.contactIcon}>📍</span>
-                <span className={styles.contactText}>123 Nguyễn Huệ, Q.1, TP.HCM</span>
+                <span className={styles.contactText}>Số 3, P. Vũ Phạm Hàm, Yên Hoà, Cầu Giấy, Hà Nội.</span>
               </li>
               <li className={styles.contactItem}>
                 <span className={styles.contactIcon}>📞</span>
@@ -68,11 +71,11 @@ const Footer = () => {
               </li>
               <li className={styles.contactItem}>
                 <span className={styles.contactIcon}>✉️</span>
-                <span className={styles.contactText}>info@ielts-center.edu.vn</span>
+                <span className={styles.contactText}>infoielts-center@gmail.com</span>
               </li>
               <li className={styles.contactItem}>
                 <span className={styles.contactIcon}>🕙</span>
-                <span className={styles.contactText}>T2-T7: 8h00 - 20h00</span>
+                <span className={styles.contactText}>T2-T7: 8h00 - 15h00</span>
               </li>
             </ul>
           </div>

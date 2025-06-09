@@ -191,7 +191,7 @@ const Statistic = () => {
       },
       title: {
         display: true,
-        text: `Số học sinh đăng ký học trong ${currentMonthYear}`, // Chart title
+        text: `Số học viên đăng ký học trong ${currentMonthYear}`, // Chart title
         font: {
           size: 24,
           weight: "bold",
@@ -247,11 +247,11 @@ const Statistic = () => {
         type: "category", // Ensure course names are displayed as categories
       },
       y: {
-        title: {
-          display: true,
-          text: "Số lượng học viên", // Y-axis title (number of students)
-          font: { size: 16, weight: "bold" },
-        },
+        // title: {
+        //   display: true,
+        //   text: "Số lượng học viên", // Y-axis title (number of students)
+        //   font: { size: 16, weight: "bold" },
+        // },
         beginAtZero: true, // Start the Y-axis at 0
       },
     },

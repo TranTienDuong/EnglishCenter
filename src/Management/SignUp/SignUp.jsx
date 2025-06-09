@@ -71,7 +71,7 @@ const SignUp = () => {
         setSignup((prevSignup) =>
           prevSignup.map((item) =>
             item.maform === confirm.maform
-              ? { ...item, trangthai: "Hoàn thành" }
+              ? { ...item, trangthai: "Hoàn Thành" }
               : item
           )
         );
@@ -82,14 +82,6 @@ const SignUp = () => {
         console.log(error);
         toast.error("Xảy ra lỗi khi xử lý đơn nhập học");
       });
-  };
-
-  const handleSort = () => {
-    const sortedData = [...signup].sort((a, b) =>
-      a.tenkhoahoc.localeCompare(b.tenkhoahoc)
-    );
-    setSignup(sortedData);
-    console.log("sorted by tenkhoahoc");
   };
 
   const handleDelete = () => {
@@ -118,7 +110,7 @@ const SignUp = () => {
 
   return (
     <>
-      <div className={classes.signup} onClick={() => setEdit(false)}>
+      <div className={classes.signup}>
         <h1>Danh sách đơn đăng ký học</h1>
         <ToastContainer />
         <div className={classes.search}>
@@ -134,18 +126,16 @@ const SignUp = () => {
             <thead>
               <tr>
                 <th>STT</th>
-                <th onClick={handleSort}>
-                  Khóa học{" "}
-                  <span>
-                    <FontAwesomeIcon icon={faSort} />
-                  </span>
-                </th>
+                <th>Khóa học</th>
                 <th>Họ và tên</th>
                 <th>Ngày sinh</th>
                 <th>Email</th>
                 <th>Số điện thoại</th>
                 <th>Địa chỉ</th>
                 <th>Ngày gửi</th>
+                <th>Điểm test</th>
+                <th>Ngày test</th>
+                <th>Trình độ dự doán</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
@@ -155,14 +145,20 @@ const SignUp = () => {
                   if (search === "") return true; // Show all students if search is empty
                   const searchLower = search.toLowerCase();
                   return (
-                    signup.tenkhoahoc.toLowerCase().includes(searchLower) ||
-                    signup.hoten.toLowerCase().includes(searchLower) ||
-                    signup.trangthai.toLowerCase().includes(searchLower) ||
-                    signup.ngaysinh.toLowerCase().includes(searchLower) ||
-                    signup.email.toLowerCase().includes(searchLower) ||
-                    signup.sdt.toLowerCase().includes(searchLower) ||
-                    signup.diachi.toLowerCase().includes(searchLower) ||
-                    signup.ngaygui.toLowerCase().includes(searchLower)
+                    (signup.tenkhoahoc || "")
+                      .toLowerCase()
+                      .includes(searchLower) ||
+                    (signup.hoten || "").toLowerCase().includes(searchLower) ||
+                    (signup.trangthai || "")
+                      .toLowerCase()
+                      .includes(searchLower) ||
+                    (signup.ngaysinh || "")
+                      .toLowerCase()
+                      .includes(searchLower) ||
+                    (signup.email || "").toLowerCase().includes(searchLower) ||
+                    (signup.sdt || "").toLowerCase().includes(searchLower) ||
+                    (signup.diachi || "").toLowerCase().includes(searchLower) ||
+                    (signup.ngaygui || "").toLowerCase().includes(searchLower)
                   );
                 })
                 .map((signup, index) => {
@@ -178,7 +174,7 @@ const SignUp = () => {
                           handleConfirm(signup);
                         }}
                       >
-                        <td>{index}</td>
+                        <td>{index + 1}</td>
                         <td>{signup.tenkhoahoc}</td>
                         <td>{signup.hoten}</td>
                         <td>{getDate(signup.ngaysinh)}</td>
@@ -186,6 +182,9 @@ const SignUp = () => {
                         <td>{signup.sdt}</td>
                         <td>{signup.diachi}</td>
                         <td>{getDate(signup.ngaygui)}</td>
+                        <td>{signup.diemthithu || "Chưa test"}</td>
+                        <td>{signup.ngaythithu || "Chưa test"}</td>
+                        <td>{signup.trinhdodudoan || "Chưa test"}</td>
                         <td>{signup.trangthai}</td>
                       </tr>
                     );

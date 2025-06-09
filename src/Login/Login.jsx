@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import styles from "./Login.module.scss";
 
 const Login = () => {
-  const [username, setUsername] = useState(""); // Dùng username thay vì email
+  useEffect(() => {
+      sessionStorage.clear();
+    }, []);
+  const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
+ 
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -45,7 +48,7 @@ sessionStorage.setItem("userId", res.data.manguoidung);
 sessionStorage.setItem("name", res.data.tennguoidung);
 sessionStorage.setItem("role", res.data.tenloaichucvu);
 
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       const serverMessage =
         error.response && error.response.data && error.response.data.message
@@ -115,22 +118,6 @@ sessionStorage.setItem("role", res.data.tenloaichucvu);
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-
-            <div className={styles.rememberForgot}>
-              <div className={styles.rememberMe}>
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className={styles.checkbox}
-                />
-                <label htmlFor="remember" className={styles.checkboxLabel}>
-                  Ghi nhớ đăng nhập
-                </label>
-              </div>
-              <a href="#" className={styles.forgotLink}>
-                Quên mật khẩu?
-              </a>
             </div>
 
             {errorMessage && (

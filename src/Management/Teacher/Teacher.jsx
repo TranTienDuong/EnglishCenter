@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/flatpickr.css";
+import { format } from 'date-fns';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loader from "../../assets/Loader/Loader";
@@ -456,15 +457,14 @@ const Teacher = () => {
                 </select>
                 <label htmlFor="ngaysinh">Ngày sinh</label>
                 <Flatpickr
-                  value={new Date(currentTeacher.ngaysinh)} // Convert initial string to Date object
-                  onChange={([date]) => {
-                    const formattedDate = getDate(date); // Format the selected date
-                    setCurrentTeacher({
-                      ...currentTeacher,
-                      ngaysinh: formattedDate,
-                    });
-                  }}
-                />
+                                  value={new Date(currentTeacher.ngaysinh)} // Convert initial string to Date object
+                                  onChange={([date]) => {
+                                    setCurrentTeacher({
+                                      ...currentTeacher,
+                                      ngaysinh: format(date, 'yyyy-MM-dd'),
+                                    });
+                                  }}
+                                />
                 <label htmlFor="email">Email</label>
                 <input
                   type="text"

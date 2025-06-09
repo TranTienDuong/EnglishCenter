@@ -51,9 +51,9 @@ const Registration = () => {
     <section id="registration" className={styles.registrationSection}>
       <div className={styles.formContainer}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Đăng Ký Học</h2>
+          <h2 className={styles.sectionTitle}>Đăng Ký</h2>
           <p className={styles.sectionDescription}>
-            Điền thông tin của bạn để đăng ký khóa học phù hợp nhất. Chúng tôi sẽ liên hệ lại với bạn trong vòng 24 giờ.
+            Điền thông tin của bạn để đăng ký thi thử online hoặc đăng ký khóa học phù hợp nhất. Chúng tôi sẽ liên hệ lại với bạn trong vòng 24 giờ.
           </p>
         </div>
 

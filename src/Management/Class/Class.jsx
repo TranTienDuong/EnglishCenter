@@ -296,6 +296,44 @@ const handleClickClass = async (classItem) => {
     console.error("Lỗi khi lấy chi tiết lớp:", error);
   }
 };
+
+function WarningClasses() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const sevenDaysLater = new Date();
+  sevenDaysLater.setDate(today.getDate() + 7); // ngày 7 ngày sau hôm nay
+
+  // Gom tất cả lớp lại
+  const allClasses = coursesArray.flatMap(course => course.class);
+
+  // Lọc lớp khai giảng trong vòng 7 ngày tới và học viên dưới 10
+  const warningClasses = allClasses.filter(cls => {
+  const ngayKhaiGiangDate = new Date(cls.ngaykhaigiang);
+  ngayKhaiGiangDate.setHours(0, 0, 0, 0);
+  const hocVienCount = Array.isArray(cls.hocvien) ? cls.hocvien.length : 0;
+
+    return (
+      ngayKhaiGiangDate >= today && 
+      ngayKhaiGiangDate <= sevenDaysLater &&
+      hocVienCount < 10 
+    );
+  });
+  if (warningClasses.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: "10px", padding: "10px", backgroundColor: "#fff3cd", color: "red", borderRadius: "4px" }}>
+      <strong>Cảnh báo:</strong> Có {warningClasses.length} lớp khai giảng trong vòng 7 ngày tới mà chưa đủ học viên.
+      <ul style={{ marginLeft: "10px"}}>
+        {warningClasses.map((cls) => (
+          <li key={cls.malop}>
+            Lớp <em>{cls.tenlophoc}</em> - Học viên: {cls.hocvien.length} (Ngày khai giảng: {new Date(cls.ngaykhaigiang).toLocaleDateString()})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
   return (
     <div className={classes.container}>
       <h1>
@@ -329,7 +367,7 @@ const handleClickClass = async (classItem) => {
               ? "Các lớp học đã kết thúc"
               : "Trở lại"}
           </button>
-
+          <WarningClasses />
           {coursesArray.map((item, index) => (
             <div key={index} className={classes.individual_course}>
               <h2>

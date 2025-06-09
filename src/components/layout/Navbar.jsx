@@ -11,7 +11,7 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
-      const sections = ['hero', 'about', 'courses', 'registration', 'consultation'];
+      const sections = ['hero', 'about', 'courses', 'registration', 'consultation', 'openingSchedule'];
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = document.getElementById(sections[i]);
         if (section) {
@@ -31,7 +31,8 @@ const Navbar = () => {
   const navItems = [
     { name: 'Giới thiệu', href: '#about' },
     { name: 'Khóa học', href: '#courses' },
-    { name: 'Đăng ký học', href: '#registration' },
+    { name: 'Lịch khai giảng', href: '#openingSchedule' },
+    { name: 'Đăng ký', href: '#registration' },
     { name: 'Tư vấn', href: '#consultation' },
   ];
 
@@ -60,7 +61,11 @@ const Navbar = () => {
             </a>
           ))}
         </nav>
-
+         <div className={styles.desktopNav}>
+          <a href="/test" className={styles.navItem}>
+            Thi thử online
+          </a>
+        </div> 
         {/* Action Button */}
         <div className={styles.actionButtons}>
           <a href="/login">

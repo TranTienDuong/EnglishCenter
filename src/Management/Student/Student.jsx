@@ -456,10 +456,9 @@ const Student = () => {
                 <Flatpickr
                   value={new Date(currentStudent.ngaysinh)} // Convert initial string to Date object
                   onChange={([date]) => {
-                    const formattedDate = getDate(date); // Format the selected date
-                    setCurrentCourse({
-                      ...currentCourse,
-                      ngaysinh: formattedDate,
+                    setCurrentStudent({
+                      ...currentStudent,
+                      ngaysinh: date.toISOString().slice(0, 10),
                     });
                   }}
                 />

@@ -13,8 +13,8 @@ const Courses = () => {
       title: "Khóa IELTS mất gốc",
       description:
         "Khóa học dành cho người mới bắt đầu hoặc còn yếu nền tảng tiếng Anh.",
-      duration: "6 tháng",
-      lessons: "72 buổi",
+      duration: "",
+      lessons: "24-36 buổi",
       students: "10-15 học viên",
       price: 2000000,
       priceDisplay: "2.000.000đ",
@@ -30,7 +30,7 @@ const Courses = () => {
       description:
         "Khóa học giúp nâng band điểm nhanh chóng trong thời gian ngắn.",
       duration: "2 tháng",
-      lessons: "24 buổi",
+      lessons: "24-36 buổi",
       students: "10-15 học viên",
       price: 2500000,
       priceDisplay: "2.500.000đ",
@@ -74,7 +74,7 @@ const Courses = () => {
       description:
         "Khóa học giúp đạt band điểm 6.0-6.5 phù hợp nhu cầu du học.",
       duration: "3 tháng",
-      lessons: "36 buổi",
+      lessons: "24-36 buổi",
       students: "10-15 học viên",
       price: 4000000,
       priceDisplay: "4.000.000đ",
@@ -88,7 +88,7 @@ const Courses = () => {
       title: "Khóa IELTS 7.0+",
       description: "Khóa học chuyên sâu giúp đạt điểm IELTS từ 7.0 trở lên.",
       duration: "4 tháng",
-      lessons: "48 buổi",
+      lessons: "24-36 buổi",
       students: "10-15 học viên",
       price: 4500000,
       priceDisplay: "4.500.000đ",
@@ -172,126 +172,142 @@ const Courses = () => {
         </div>
 
         <div className={styles.courseGrid}>
-          {courses.map((course) => {
-            const discount = discounts.find(
-              (d) => String(d.makhoahoc) === String(course.idApi)
-            );
-            const discountedPrice = discount
-              ? getPriceAfterDiscount(course.idApi, course.price)
-              : course.price;
-            const countdown =
-              discount && discount.thoigianuudai
-                ? countdowns[String(discount.makhoahoc)]
-                : null;
-            return (
-              <div key={course.id} className={styles.card}>
-                <div className={styles.cardImageWrapper}>
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className={styles.cardImage}
-                  />
-                  {course.badge && (
-                    <span className={styles.badge}>{course.badge}</span>
-                  )}
-                  {discount && countdown && (
+  {courses.map((course) => {
+    const discount = discounts.find(
+      (d) => String(d.makhoahoc) === String(course.idApi)
+    );
+
+    const now = new Date();
+    const endDate = discount?.thoigianuudai
+      ? new Date(discount.thoigianuudai)
+      : null;
+
+    const isInPromotionPeriod = endDate && now <= endDate;
+
+    const showDiscount = discount && isInPromotionPeriod;
+
+    const discountedPrice = showDiscount
+      ? getPriceAfterDiscount(course.idApi, course.price)
+      : course.price;
+
+    const countdown =
+      showDiscount && countdowns[String(discount.makhoahoc)]
+        ? countdowns[String(discount.makhoahoc)]
+        : null;
+
+    return (
+      <div key={course.id} className={styles.card}>
+        <div className={styles.cardImageWrapper}>
+          <img
+            src={course.image}
+            alt={course.title}
+            className={styles.cardImage}
+          />
+          {course.badge && (
+            <span className={styles.badge}>{course.badge}</span>
+          )}
+          {showDiscount && countdown && (
+            <span
+              className={styles.badge}
+              style={{
+                backgroundColor: "#ff6347",
+                zIndex: 20,
+                position: "absolute",
+                top: 10,
+                right: 10,
+              }}
+            >
+              Giảm {discount.uudai}%
+            </span>
+          )}
+        </div>
+        <div className={styles.cardHeader}>
+          <h3 className={styles.cardTitle}>{course.title}</h3>
+        </div>
+        <div className={styles.cardContent}>
+          <p className={styles.cardDescription}>{course.description}</p>
+          <div className={styles.courseInfoGrid}>
+            <div>
+              <p className={styles.infoLabel}>Thời gian ưu đãi</p>
+              <p className={styles.infoValue}>
+      {discount?.thoigianuudai &&
+      new Date(discount.thoigianuudai) > new Date()
+        ? `${discount.thoigianuudai}`
+        : "Chưa có"}
+    </p>
+            </div>
+            <div>
+              <p className={styles.infoLabel}>Số buổi học</p>
+              <p className={styles.infoValue}>{course.lessons}</p>
+            </div>
+            <div>
+              <p className={styles.infoLabel}>Sĩ số</p>
+              <p className={styles.infoValue}>{course.students}</p>
+            </div>
+            <div>
+              <p className={styles.infoLabel}>Học phí</p>
+              <p
+                className={`${styles.infoValue} ${styles.textPrimary}`}
+              >
+                {showDiscount ? (
+                  <>
                     <span
-                      className={styles.badge}
                       style={{
-                        backgroundColor: "#ff6347",
-                        zIndex: 20,
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
+                        textDecoration: "line-through",
+                        marginRight: 8,
                       }}
                     >
-                      Giảm {discount.uudai}%
+                      {course.priceDisplay}
                     </span>
-                  )}
-                </div>
-                <div className={styles.cardHeader}>
-                  <h3 className={styles.cardTitle}>{course.title}</h3>
-                </div>
-                <div className={styles.cardContent}>
-                  <p className={styles.cardDescription}>{course.description}</p>
-                  <div className={styles.courseInfoGrid}>
-                    <div>
-                      <p className={styles.infoLabel}>Thời gian</p>
-                      <p className={styles.infoValue}>{course.duration}</p>
-                    </div>
-                    <div>
-                      <p className={styles.infoLabel}>Số buổi học</p>
-                      <p className={styles.infoValue}>{course.lessons}</p>
-                    </div>
-                    <div>
-                      <p className={styles.infoLabel}>Sĩ số</p>
-                      <p className={styles.infoValue}>{course.students}</p>
-                    </div>
-                    <div>
-                      <p className={styles.infoLabel}>Học phí</p>
-                      <p
-                        className={`${styles.infoValue} ${styles.textPrimary}`}
-                      >
-                        {discount ? (
-                          <>
-                            <span
-                              style={{
-                                textDecoration: "line-through",
-                                marginRight: 8,
-                              }}
-                            >
-                              {course.priceDisplay}
-                            </span>
-                            <span>
-                              {discountedPrice.toLocaleString("vi-VN")}đ
-                            </span>
-                          </>
-                        ) : (
-                          course.priceDisplay
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    <span>
+                      {discountedPrice.toLocaleString("vi-VN")}đ
+                    </span>
+                  </>
+                ) : (
+                  course.priceDisplay
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
 
-                <div className={styles.cardFooter}>
-                  
-  {discount && countdown && (
-    <div className={styles.countdownWrapper}>
-      <h1 className={styles.countdownTitle}>Cơ hội chỉ còn :</h1>
-      <div className={styles.time}>
-        <div className={styles.timeBox}>
-          <h4>{countdown.days}</h4>
-          <h5>Ngày</h5>
-        </div>
-        <div className={styles.timeBox}>
-          <h4>{countdown.hours}</h4>
-          <h5>Giờ</h5>
-        </div>
-        <div className={styles.timeBox}>
-          <h4>{countdown.minutes}</h4>
-          <h5>Phút</h5>
-        </div>
-        <div className={styles.timeBox}>
-          <h4>{countdown.seconds}</h4>
-          <h5>Giây</h5>
+        <div className={styles.cardFooter}>
+          {showDiscount && countdown && (
+            <div className={styles.countdownWrapper}>
+              <h1 className={styles.countdownTitle}>
+                Cơ hội chỉ còn :
+              </h1>
+              <div className={styles.time}>
+                <div className={styles.timeBox}>
+                  <h4>{countdown.days}</h4>
+                  <h5>Ngày</h5>
+                </div>
+                <div className={styles.timeBox}>
+                  <h4>{countdown.hours}</h4>
+                  <h5>Giờ</h5>
+                </div>
+                <div className={styles.timeBox}>
+                  <h4>{countdown.minutes}</h4>
+                  <h5>Phút</h5>
+                </div>
+                <div className={styles.timeBox}>
+                  <h4>{countdown.seconds}</h4>
+                  <h5>Giây</h5>
+                </div>
+              </div>
+            </div>
+          )}
+          <a href="#registration" className={styles.button}>
+            Đăng ký ngay
+          </a>
         </div>
       </div>
-    </div>
-  )}
-  <a href="#registration" className={styles.button}>
-    Đăng ký ngay
-  </a>
+    );
+  })}
 </div>
-
-
-              </div>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
-};
+}
 
 export default Courses;

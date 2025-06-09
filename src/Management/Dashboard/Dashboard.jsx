@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import {
 //  faHouse,
   faBars,
+  faQuestion,
   faCircle,
   faSignOutAlt,
   faCalendar,
@@ -28,6 +29,7 @@ import {
  import Course from "../Course/Course";
  import Class from "../Class/Class";
  import Statistic from "../Statistic/Statistic";
+ import Question  from "../Question/Question";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -74,6 +76,8 @@ const Dashboard = () => {
       return <Schedule />;
         case "studentconfirm":
       return <StudentConfirm />;
+        case "question":
+      return <Question />;
         case "statistic":
       return <Statistic />;
     default:
@@ -91,6 +95,7 @@ const Dashboard = () => {
     { view: "teacher", icon: faUser, text: "Giáo viên", role: ["admin"], },
     { view: "consultant", icon: faHeadset, text: "Tư vấn", role: ["admin"], },
     { view: "course", icon: faBook, text: "Khóa học", role: ["admin"], },
+    { view: "question", icon: faQuestion, text: "Câu hỏi", role: ["admin"], },
     { view: "statistic", icon: faChartSimple, text: "Báo cáo thống kê", role: ["admin"], },
   ];
 

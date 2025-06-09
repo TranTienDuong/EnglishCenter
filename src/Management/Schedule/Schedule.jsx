@@ -17,6 +17,14 @@ const Schedule = () => {
   const userId = sessionStorage.getItem("userId");
   const role = sessionStorage.getItem("role");
 
+  const [giaoVienOptions, setGiaoVienOptions] = useState([]);
+  const [luuclasses, setLuuClasses] = useState([]);
+  const [luurooms, setLuuRooms] = useState([]);
+
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState("");
+
   const classColors = [
     "#641e16",
     "#512e5f",
@@ -103,6 +111,7 @@ const Schedule = () => {
                   tenlophoc: cls.tenlophoc,
                   ngaykhaigiang: cls.ngaykhaigiang,
                   thoigianhoc: cls.thoigianhoc,
+                  giangVien: cls.giangVien,
                 }))
               )
               .catch((err) => {
@@ -119,8 +128,8 @@ const Schedule = () => {
             `http://localhost:8080/api/v1/nguoidung/personalSchedule/${userId}`
           );
           const filtered = res.data.filter(
-    (item) => item.trangThai !== "Chuyển Lớp"
-  );
+            (item) => item.trangThai !== "Chuyển Lớp"
+          );
           setScheduleData(filtered);
         }
       } catch (err) {
@@ -134,20 +143,132 @@ const Schedule = () => {
   }, [role, userId]);
 
   useEffect(() => {
-    const newSchedule = initializeScheduleTemplate();
+    const fetchData = async () => {
+      try {
+        const [classRes, roomRes] = await Promise.all([
+          axios.get("http://localhost:8080/api/v1/lophoc"),
+          axios.get("http://localhost:8080/api/phonghoc"),
+        ]);
 
-    scheduleData.forEach((data) => {
+        const today = new Date();
+
+        // Lọc những lớp chưa kết thúc (đang học hoặc sắp học)
+        const filteredClasses = classRes.data.filter((classItem) => {
+          const startDate = new Date(classItem.ngaykhaigiang);
+          const duration = parseInt(classItem.thoigianhoc.slice(0, 2), 10); // ví dụ: "36 buổi"
+
+          const endDate = new Date(startDate);
+          if (duration === 36) {
+            endDate.setMonth(endDate.getMonth() + 3);
+          } else if (duration === 24) {
+            endDate.setMonth(endDate.getMonth() + 2);
+          } else {
+            endDate.setMonth(endDate.getMonth() + 2); // default fallback
+          }
+
+          return endDate >= today;
+        });
+        const giaoVienMap = new Map();
+
+        filteredClasses.forEach((cls) => {
+          const giangViens = cls.giangVien; // đây là mảng
+          if (Array.isArray(giangViens)) {
+            giangViens.forEach((gv) => {
+              if (gv && !giaoVienMap.has(gv.manguoidung)) {
+                giaoVienMap.set(gv.manguoidung, {
+                  manguoidung: gv.manguoidung,
+                  hoten: gv.hoten,
+                });
+              }
+            });
+          }
+        });
+
+        setGiaoVienOptions(Array.from(giaoVienMap.values()));
+
+        //setLuuTeachers(teacherRes.data);
+        setLuuClasses(filteredClasses); // chỉ set những lớp còn hiệu lực
+        setLuuRooms(roomRes.data);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+function getLessonDaysPerWeek(tenlop, scheduleData) {
+  const classData = scheduleData.find(
+    (item) => item.tenlop === tenlop || item.tenlophoc === tenlop
+  );
+
+  if (!classData) {
+    console.warn(`Không tìm thấy lớp ${tenlop} trong dữ liệu lịch học.`);
+    return 0;
+  }
+
+  let thuhocStr = "";
+
+  // Xử lý thuhoc có thể là string, number, hoặc array
+  if (typeof classData.thuhoc === "string") {
+    thuhocStr = classData.thuhoc;
+  } else if (Array.isArray(classData.thuhoc)) {
+    thuhocStr = classData.thuhoc.join(",");
+  } else if (typeof classData.thuhoc === "number") {
+    thuhocStr = String(classData.thuhoc);
+  } else {
+    console.warn("Định dạng thuhoc không hợp lệ:", classData.thuhoc);
+    return 0;
+  }
+
+  // Tách các ngày học ra mảng số nguyên
+  const daysArray = thuhocStr
+    .split(",")
+    .map((d) => parseInt(d.trim()))
+    .filter((d) => !isNaN(d));
+
+  return daysArray.length; // trả về số buổi học trong tuần
+}
+
+  useEffect(() => {
+    const newSchedule = initializeScheduleTemplate();
+    const filteredData = scheduleData.filter((data) => {
+      const teacherMatch =
+        !selectedTeacher ||
+        (Array.isArray(data.giangVien) &&
+          data.giangVien.some(
+            (gv) => gv.manguoidung === parseInt(selectedTeacher)
+          ));
+      const classMatch =
+        !selectedClass ||
+        data.tenlophoc === selectedClass ||
+        data.tenlop === selectedClass;
+      const roomMatch = !selectedRoom || data.tenphonghoc === selectedRoom;
+
+      return teacherMatch && classMatch && roomMatch;
+    });
+
+    filteredData.forEach((data) => {
       const day = getDayName(data.thuhoc);
       const timeSlot = getTimeSlot(data.tgbatdau);
       const startDate = new Date(data.ngaykhaigiang);
-      let durationMs = 0;
+           
+      const totalLessons = parseInt(String(data.thoigianhoc).match(/\d+/)?.[0]); // "36 buổi" => 36
+      const lessonDaysPerWeek = getLessonDaysPerWeek(data.tenlophoc || data.tenlophoc, scheduleData);
+      const totalWeeks = Math.ceil(totalLessons / lessonDaysPerWeek);
+      const durationDays = totalWeeks * 7;
 
-      if (data.thoigianhoc === "36 buổi")
-        durationMs = 12 * 7 * 24 * 60 * 60 * 1000;
-      else if (data.thoigianhoc === "24 buổi")
-        durationMs = 8 * 7 * 24 * 60 * 60 * 1000;
+      const endDate = new Date(startDate.getTime() + durationDays* 24 * 60 * 60 * 1000 - 1 * 24 * 60 * 60 * 1000); 
 
-      const endDate = new Date(startDate.getTime() + durationMs - 1* 24 * 60 * 60 * 1000);
+      // let durationMs = 0;
+      // if (data.thoigianhoc === "36 buổi")
+      //   durationMs = 12 * 7 * 24 * 60 * 60 * 1000;
+      // else if (data.thoigianhoc === "24 buổi")
+      //   durationMs = 8 * 7 * 24 * 60 * 60 * 1000;
+
+      // const endDate = new Date(
+      //   startDate.getTime() + durationMs - 1 * 24 * 60 * 60 * 1000
+      // );
 
       const entry = {
         room: data.tenphonghoc,
@@ -162,7 +283,7 @@ const Schedule = () => {
     });
 
     setSchedule(newSchedule);
-  }, [scheduleData, role]);
+  }, [scheduleData, role, selectedTeacher, selectedClass, selectedRoom]);
 
   if (loading) return <Loader />;
 
@@ -177,7 +298,6 @@ const Schedule = () => {
   // Hàm tính ngày Thứ 2 của tuần chứa selectedDate
   const startOfWeek = getStartOfWeek(selectedDate);
 
-
   return (
     <div className={classes.container}>
       <h1>
@@ -185,6 +305,58 @@ const Schedule = () => {
         {role === "Giáo Viên" && "Lịch dạy học:"}
         {role === "admin" && "Lịch học của toàn bộ các lớp trong trung tâm:"}
       </h1>
+      {role === "admin" && (
+  <div className={classes.filters}>
+    <div className={classes.filterItem}>
+      <label htmlFor="teacher-select">Giáo viên:</label>
+      <select
+        id="teacher-select"
+        value={selectedTeacher}
+        onChange={(e) => setSelectedTeacher(e.target.value)}
+      >
+        <option value="">Tất cả</option>
+        {giaoVienOptions.map((gv) => (
+          <option key={gv.manguoidung} value={gv.manguoidung}>
+            {gv.hoten}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div className={classes.filterItem}>
+      <label htmlFor="class-select">Lớp:</label>
+      <select
+        id="class-select"
+        value={selectedClass}
+        onChange={(e) => setSelectedClass(e.target.value)}
+      >
+        <option value="">Tất cả</option>
+        {luuclasses.map((cls) => (
+          <option key={cls.malop} value={cls.tenlophoc}>
+            {cls.tenlophoc}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div className={classes.filterItem}>
+      <label htmlFor="room-select">Phòng học:</label>
+      <select
+        id="room-select"
+        value={selectedRoom}
+        onChange={(e) => setSelectedRoom(e.target.value)}
+      >
+        <option value="">Tất cả</option>
+        {luurooms.map((room) => (
+          <option key={room.maphong} value={room.tenphong}>
+            {room.tenphong}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+)}
+
 
       <Calendar
         onChange={setSelectedDate}
@@ -242,10 +414,10 @@ const Schedule = () => {
                         }}
                       >
                         {`${data.className || "N/A"}`}
-                            <span>
-                              {data.startTime} - {data.endTime}
-                            </span>
-                            <span>Phòng học: {data.room}</span>
+                        <span>
+                          {data.startTime} - {data.endTime}
+                        </span>
+                        <span>Phòng học: {data.room}</span>
                       </p>
                     ))}
                 </td>
