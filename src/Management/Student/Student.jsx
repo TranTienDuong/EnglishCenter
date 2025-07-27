@@ -143,110 +143,236 @@ const Student = () => {
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleAddNewStudent = async () => {
-  // Kiểm tra trùng lặp tên đăng nhập và mật khẩu
-  const isDuplicate = student.some(
-    (s) =>
-      s.tendangnhap === newStudent.tendangnhap &&
-      s.matkhau === newStudent.matkhau
-  );
+    // // Kiểm tra trùng lặp tên đăng nhập và mật khẩu
+    // const isDuplicate = student.some(
+    //   (s) =>
+    //     s.tendangnhap === newStudent.tendangnhap &&
+    //     s.matkhau === newStudent.matkhau
+    // );
 
-  if (!newStudent.hoten || !newStudent.email || !newStudent.sdt || !newStudent.tendangnhap || !newStudent.matkhau) {
-    toast.error("Vui lòng điền đầy đủ thông tin.");
-    return;
-  }
-  const nameRegex = /^[a-zA-Zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]+$/;
-  if (!newStudent.hoten || !nameRegex.test(newStudent.hoten)) {
-    toast.error("Họ và tên không hợp lệ. Vui lòng chỉ nhập chữ và dấu tiếng Việt.");
-    return;
-  }
-   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(newStudent.email)) {
-    toast.error("Email không hợp lệ.");
-    return;
-  }
+    if (
+      !newStudent.hoten ||
+      !newStudent.email ||
+      !newStudent.sdt ||
+      !newStudent.gioitinh ||
+      !newStudent.ngaysinh
+    ) {
+      toast.error("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+    const nameRegex =
+      /^[a-zA-Zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]+$/;
+    if (!newStudent.hoten || !nameRegex.test(newStudent.hoten)) {
+      toast.error(
+        "Họ và tên không hợp lệ. Vui lòng chỉ nhập chữ và dấu tiếng Việt."
+      );
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newStudent.email)) {
+      toast.error("Email không hợp lệ.");
+      return;
+    }
 
-  const phoneRegex = /^[0-9]{10}$/;  // Regex kiểm tra số điện thoại 10 chữ số
-  if (!phoneRegex.test(newStudent.sdt)) {
-    toast.error("Số điện thoại phải có 10 chữ số.");
-    return;
-  }
+    const phoneRegex = /^[0-9]{10}$/; // Regex kiểm tra số điện thoại 10 chữ số
+    if (!phoneRegex.test(newStudent.sdt)) {
+      toast.error("Số điện thoại phải có 10 chữ số.");
+      return;
+    }
+    let tenkhoahoc = "Khóa học chưa xác định";
+    let tenlophoc = null;
 
-  if (isDuplicate) {
-    toast.error("Tên đăng nhập và mật khẩu đã tồn tại.");
-    return;
-  }
+    // Kiểm tra nếu classData tồn tại và là mảng
+    if (addToClass && Array.isArray(classData)) {
+      try {
+        console.log("Searching for class with malop:", addToClass);
+        console.log("Available classes:", classData);
 
-  try {
-    const payload = {
-      nguoiDungDTO: newStudent,
-      malop: addToClass || null,
-    };
+        const selectedClass = classData.find((cls) => {
+          // So sánh cả số và chuỗi để tránh lỗi type
+          return cls.malop == addToClass;
+        });
 
-    // Gửi yêu cầu thêm học viên
-    await axios.post(
-      `http://localhost:8080/api/v1/nguoidung/themhocsinh`,
-      payload
+        if (selectedClass) {
+          console.log("Found selected class:", selectedClass);
+          tenlophoc = selectedClass.tenlophoc || null;
+
+          // Kiểm tra nhiều trường có thể chứa tên khóa học
+          tenkhoahoc =
+            selectedClass.tenkhoahoc ||
+            selectedClass.khoahoc?.tenkhoahoc ||
+            selectedClass.tenkhoa ||
+            tenkhoahoc;
+        } else {
+          console.warn(`Không tìm thấy lớp học với malop: ${addToClass}`);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tìm kiếm lớp học:", error);
+      }
+    } else {
+      console.warn("classData không tồn tại hoặc không phải mảng");
+    }
+
+    console.log(
+      "Final values - tenkhoahoc:",
+      tenkhoahoc,
+      "tenlophoc:",
+      tenlophoc
     );
 
-    // Hiển thị thông báo thành công
-    toast.success("Thêm mới học viên thành công");
+    // if (isDuplicate) {
+    //   toast.error("Tên đăng nhập và mật khẩu đã tồn tại.");
+    //   return;
+    // }
 
-    // Reset lại các trường sau khi thêm học viên
-    setNewStudent({
-      hoten: "",
-      gioitinh: "Nam",
-      ngaysinh: new Date(),
-      email: "",
-      sdt: "",
-      diachi: "",
-      tendangnhap: "",
-      matkhau: "",
-      tenchucvu: "Học Viên",
-    });
-    setAddToClass(null);
-    setAdd(false); // Đóng form sau khi thêm học viên thành công
+    try {
+      console.log("lophoc", tenlophoc);
+      console.log("khoahoc", tenkhoahoc);
+      // const payload = {
+      //   nguoiDungDTO: newStudent,
+      //   malop: addToClass || null,
+      // };
 
-    // Cập nhật danh sách học viên mới sau khi thêm
-    fetchStudents();  // Lấy lại dữ liệu học viên mới từ API
+      // // Gửi yêu cầu thêm học viên
+      // await axios.post(
+      //   `http://localhost:8080/api/v1/nguoidung/themhocsinh`,
+      //   payload
+      // );
 
-  } catch (error) {
-    console.error("Error adding student:", error.response?.data || error.message);
-    toast.error("Lỗi khi thêm học viên");
-  }
-};
+      // // Hiển thị thông báo thành công
+      // toast.success("Thêm mới học viên thành công");
+
+      // Reset lại các trường sau khi thêm học viên
+      const ngaysinhISO = new Date(newStudent.ngaysinh).toISOString();
+      const formNhapHocData = {
+        hoten: newStudent.hoten,
+        ngaysinh: newStudent.ngaysinh,
+        gioitinh: newStudent.gioitinh,
+        sdt: newStudent.sdt,
+        diachi: newStudent.diachi,
+        email: newStudent.email,
+        tenkhoahoc: tenkhoahoc,
+        ngaygui: new Date().toISOString(),
+        trangthai: "Chờ Xét Duyệt",
+      };
+      await axios.post(
+        "http://localhost:8080/api/v1/formnhaphoc",
+        formNhapHocData
+      );
+      const resFormNhapHoc = await axios.get(
+        "http://localhost:8080/api/v1/formnhaphoc"
+      );
+      const danhSachFormNhapHoc = resFormNhapHoc.data;
+
+      // 2. Tìm form nhập học trùng khớp với thông tin học sinh mới
+      const matchedForm = danhSachFormNhapHoc.find(
+        (form) =>
+          form.hoten === newStudent.hoten &&
+          form.email === newStudent.email &&
+          new Date(form.ngaysinh).toISOString().slice(0, 10) ===
+            new Date(ngaysinhISO).toISOString().slice(0, 10) &&
+          form.gioitinh === newStudent.gioitinh
+      );
+
+      // 3. Nếu tìm thấy form trùng khớp thì cập nhật
+      if (matchedForm) {
+        await axios.put(
+          `http://localhost:8080/api/v1/formnhaphoc/${matchedForm.maform}`,
+          {
+            ...matchedForm,
+            tenkhoahoc: tenkhoahoc, // Cập nhật tên khóa học từ lớp được chọn
+            trangthai: "Hoàn Thành",
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+      const resXacNhan = await axios.get(
+        "http://localhost:8080/api/v1/xacnhan"
+      );
+      const danhSachXacNhan = resXacNhan.data;
+
+      const matchedXacNhan = danhSachXacNhan.find(
+        (xacnhan) =>
+          xacnhan.hoten === newStudent.hoten &&
+          xacnhan.email === newStudent.email &&
+          new Date(xacnhan.ngaysinh).toISOString().slice(0, 10) ===
+            new Date(ngaysinhISO).toISOString().slice(0, 10) &&
+          xacnhan.gioitinh === newStudent.gioitinh
+      );
+
+      if (matchedXacNhan) {
+        await axios.put(
+          `http://localhost:8080/api/v1/xacnhan/${matchedXacNhan.maxacnhan}`,
+          {
+            ...matchedXacNhan,
+            tenlophoc: tenlophoc, // Giữ nguyên nếu không có lớp mới
+            trangthai: "Hoàn Thành",
+          }
+        );
+        toast.success("Thêm học viên thành công");
+      }
+
+      setNewStudent({
+        hoten: "",
+        gioitinh: "Nam",
+        ngaysinh: new Date(),
+        email: "",
+        sdt: "",
+        diachi: "",
+        tendangnhap: "",
+        matkhau: "",
+        tenchucvu: "Học Viên",
+      });
+      setAddToClass(null);
+      setAdd(false); // Đóng form sau khi thêm học viên thành công
+
+      // Cập nhật danh sách học viên mới sau khi thêm
+      fetchStudents(); // Lấy lại dữ liệu học viên mới từ API
+    } catch (error) {
+      console.error(
+        "Error adding student:",
+        error.response?.data || error.message
+      );
+      toast.error("Lỗi khi thêm học viên");
+    }
+  };
 
   const handleDeleteStudent = async () => {
-  if (!currentStudent.manguoidung) {
-    toast.error("Không tìm thấy ID học viên để xóa.");
-    return;
-  }
+    if (!currentStudent.manguoidung) {
+      toast.error("Không tìm thấy ID học viên để xóa.");
+      return;
+    }
 
-  const confirm = window.confirm("Bạn có chắc chắn muốn xóa học viên này?");
-  if (!confirm) return;
+    const confirm = window.confirm("Bạn có chắc chắn muốn xóa học viên này?");
+    if (!confirm) return;
 
-  try {
-    const studentId = currentStudent.manguoidung.toString(); // Ensure the ID is a string
+    try {
+      const studentId = currentStudent.manguoidung.toString(); // Ensure the ID is a string
 
-    // Send a DELETE request to delete the student
-    await axios.delete(`http://localhost:8080/api/v1/nguoidung/${studentId}`);
-    toast.success("Xóa học viên thành công");
+      // Send a DELETE request to delete the student
+      await axios.delete(`http://localhost:8080/api/v1/nguoidung/${studentId}`);
+      toast.success("Xóa học viên thành công");
 
-    // Refresh the list of students after deletion
-    fetchStudents();
-    setEdit(false); // Close the edit form
-    setCurrentStudent({}); // Reset the current student data
-  } catch (error) {
-    console.error("Lỗi khi xóa học viên:", error.response?.data || error.message);
-    toast.error("Lỗi khi xóa học viên");
-  }
-};
-
-
-
+      // Refresh the list of students after deletion
+      fetchStudents();
+      setEdit(false); // Close the edit form
+      setCurrentStudent({}); // Reset the current student data
+    } catch (error) {
+      console.error(
+        "Lỗi khi xóa học viên:",
+        error.response?.data || error.message
+      );
+      toast.error("Lỗi khi xóa học viên");
+    }
+  };
 
   return (
     <div className={classes.student} onClick={() => setEdit(false)}>
-        <ToastContainer />
+      <ToastContainer />
       {add ? (
         <>
           <div className={classes.header}>
@@ -317,7 +443,7 @@ const Student = () => {
                 setNewStudent({ ...newStudent, diachi: e.target.value })
               }
             />
-            <label htmlFor="tendangnhap">Tên đăng nhập</label>
+            {/* <label htmlFor="tendangnhap">Tên đăng nhập</label>
             <input
               autoComplete="off"
               required
@@ -340,7 +466,7 @@ const Student = () => {
               onChange={(e) =>
                 setNewStudent({ ...newStudent, matkhau: e.target.value })
               }
-            />
+            /> */}
 
             <label htmlFor="lop">Chọn lớp học</label>
             <select
@@ -523,7 +649,7 @@ const Student = () => {
                       ...currentStudent,
                       matkhau: e.target.value,
                     })
-                  } 
+                  }
                 />
                 <div className={classes["button-group"]}>
                   <button className={classes["save-btn"]} onClick={handleSave}>

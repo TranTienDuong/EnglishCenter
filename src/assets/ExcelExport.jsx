@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import ExcelJS from "exceljs";
 import FileSaver from "file-saver";
 
 const ExcelExport = ({ columns, data, title, fileName }) => {
+  const [hover, setHover] = useState(false);
+
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(fileName);
@@ -71,16 +73,20 @@ const ExcelExport = ({ columns, data, title, fileName }) => {
   return (
     <button
       onClick={exportToExcel}
+      onMouseEnter={() => setHover(true)}
+  onMouseLeave={() => setHover(false)}
       style={{
-        backgroundColor: "green",
-        color: "white",
-        borderRadius: "5px",
-        cursor: "pointer",
-        width: "150px",
-        height: "45px",
-        fontSize: "16px",
-        border: "none",
-        margin: "10px",
+    padding: '10px',
+    width: '30%',
+    borderRadius: '5px',
+    backgroundColor: 'green',
+    color: 'white',
+    transition: 'transform 0.2s ease-out',
+    cursor: 'pointer',
+    marginLeft: '20px',
+    marginRight: '20px',
+    transform: hover ? 'scale(1.05)' : 'scale(1)',
+    border: 'none',
       }}
     >
       Xuất file Excel

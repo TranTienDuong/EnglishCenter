@@ -27,6 +27,20 @@ export const ClassDetail = ({
   const [allClasses, setAllClasses] = useState([]); // danh sách lớp khác
   const [classEnded, setClassEnded] = useState(false);
 
+   const [isAttendance, setIsAttendance] = useState(false);
+  const [attendanceList, setAttendanceList] = useState([]);
+  const [selectedAttendance, setSelectedAttendance] = useState(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [makeupDate, setMakeupDate] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [editAttendance, setEditAttendance] = useState({
+    maDiemDanh: null,
+    trangThai: "",
+    ghiChu: "",
+    ngayDayBu: null
+  });
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const [editState, setEditState] = useState({
   tenkhoahoc: '',
   tenlophoc: '',
@@ -45,17 +59,40 @@ export const ClassDetail = ({
     { header: "Điểm tổng kết", accessor: "diemtongket" },
     { header: "Trạng thái", accessor: "trangThai" },
   ];
-useEffect(() => {
+  const columnss = [
+    { header: "Họ và tên", accessor: "hoten" },
+    { header: "Giới tính", accessor: "gioitinh" },
+    { header: "Email", accessor: "email" },
+    { header: "Số điện thoại", accessor: "sdt" },
+    { header: "Địa chỉ", accessor: "diachi" },
+  ];
+  const attendanceColumns = [
+  { header: "STT", accessor: "stt" },
+  { header: "Ngày học", accessor: "ngayHoc" },
+  { header: "Thời gian điểm danh", accessor: "thoiGianDiemDanh" },
+  { header: "Trạng thái", accessor: "trangThai" },
+  { header: "Ghi chú", accessor: "ghiChu" },
+  { header: "Học bù", accessor: "isBu" },
+  { header: "Thời gian bắt đầu", accessor: "thoiGianBatDau" },
+  { header: "Thời gian kết thúc", accessor: "thoiGianKetThuc" }
+];
+  useEffect(() => {
   if (detail) {
-    setDetailState({
-      ...detail,
+    setDetailState((prev) => ({
+      ...prev,
       ngaykhaigiang: new Date(detail.ngaykhaigiang),
-      magiaovien: detailState.giangVien[0].manguoidung.toString(),
-    });
+      magiaovien: detail.giangVien?.[0]?.manguoidung?.toString() || "",
+    }));
+    setEditState(detail);
+    setTeacherData(detail.giangVien || []);
   }
-  setTeacherData(detailState.giangVien);
-  setEditState(detail);
-}, [detail,detailState.giangVien]);
+}, [detail]);
+
+  useEffect(() => {
+    if (isAttendance && detailState?.malop) {
+      fetchAttendanceList();
+    }
+  }, [isAttendance, detailState?.malop]);
 
   useEffect(() => {
     if (changeMark) {
@@ -117,7 +154,117 @@ useEffect(() => {
 }, [ editState.tenkhoahoc, detailState.thuhoc, detailState.cahoc, editState.ngaykhaigiang,
 ]);
 
+  const fetchAttendanceList = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const ngayKhaiGiang = detailState.ngaykhaigiang 
+        ? new Date(detailState.ngaykhaigiang).toISOString().split('T')[0] 
+        : today;
 
+      const maGiaoVien = detailState.giangVien?.[0]?.manguoidung || '';
+      
+      const res = await axios.get(`http://localhost:8080/api/v1/diemdanh`, {
+        params: {
+          maGiaoVien: maGiaoVien,
+          maLop: detailState.malop,
+          ngayBatDau: ngayKhaiGiang,
+          ngayKetThuc: today
+        }
+      });
+      
+      setAttendanceList(res.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách điểm danh:", error);
+      toast.error("Không thể lấy danh sách điểm danh");
+    }
+  };
+  // Hàm xử lý khi nhấn vào 1 dòng điểm danh
+  const handleSelectAttendance = (attendance) => {
+    setSelectedAttendance(attendance);
+    setEditAttendance({
+      maDiemDanh: attendance.maDiemDanh,
+      trangThai: attendance.trangThai,
+      ghiChu: attendance.ghiChu || '',
+      ngayDayBu: null
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateAttendance = async () => {
+    if (!editAttendance.maDiemDanh || !editAttendance.trangThai) {
+      toast.error("Vui lòng chọn trạng thái");
+      return;
+    }
+
+    try {
+      // Nếu là trạng thái "Hủy lớp" thì cần có ngày dạy bù
+      if (editAttendance.trangThai === "Hủy lớp" && !editAttendance.ngayDayBu) {
+        toast.error("Vui lòng chọn ngày dạy bù khi hủy lớp");
+        return;
+      }
+
+      if (editAttendance.trangThai !== "Hủy lớp") {
+        console.log("Cập nhật trạng thái điểm danh:", editAttendance.maDiemDanh);
+        await axios.put(
+          `http://localhost:8080/api/v1/diemdanh/${editAttendance.maDiemDanh}`,
+          {
+            trangThai: editAttendance.trangThai,
+            ghiChu: editAttendance.ghiChu
+          }
+        );
+        toast.success("Cập nhật điểm danh thành công");
+      } else {
+        await axios.put(
+        `http://localhost:8080/api/v1/diemdanh/${editAttendance.maDiemDanh}`,
+        {
+          trangThai: "Hủy lớp",
+          ghiChu: editAttendance.ghiChu || "Buổi học đã bị hủy"
+        }
+      );
+      const buoiDayBu = {
+  nguoiDung: { 
+    manguoidung: selectedAttendance.nguoiDung.manguoidung 
+  },
+  lopHoc: { 
+    malop: selectedAttendance.lopHoc.malop 
+  },
+  ngayHoc: format(editAttendance.ngayDayBu, 'yyyy-MM-dd'),
+  thoiGianBatDau: selectedAttendance.thoiGianBatDau,
+  thoiGianKetThuc: selectedAttendance.thoiGianKetThuc,
+  trangThai: "Chưa điểm danh",
+  isBu: true,
+  ghiChu: `Dạy bù cho buổi hủy ngày ${format(selectedAttendance.ngayHoc, 'dd/MM/yyyy')}`
+};
+console.log("Tạo lịch dạy bù:", buoiDayBu);
+      const response = await axios.post(
+        `http://localhost:8080/api/v1/diemdanh`, 
+        buoiDayBu
+      );
+      if (response.status === 201) {
+        toast.success("Hủy lớp và tạo lịch dạy bù thành công");
+      }}
+
+      fetchAttendanceList();
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Lỗi khi cập nhật điểm danh:", error);
+      toast.error(error.response?.data?.message || "Cập nhật thất bại");
+    }
+  };
+  const exportAttendanceData = attendanceList.map((att, index) => {
+  return {
+    stt: index + 1,
+    ngayHoc: format(new Date(att.ngayHoc), 'dd/MM/yyyy'),
+    thoiGianDiemDanh: att.thoiGianDiemDanh 
+      ? format(new Date(att.thoiGianDiemDanh), 'HH:mm dd/MM/yyyy')
+      : 'Chưa điểm danh',
+    trangThai: att.trangThai,
+    ghiChu: att.ghiChu || 'Không có ghi chú',
+    isBu: att.isBu ? 'Có' : 'Không',
+    thoiGianBatDau: att.thoiGianBatDau,
+    thoiGianKetThuc: att.thoiGianKetThuc
+  };
+});
 
   const fetchClassDetail = async () => {
     try {
@@ -191,12 +338,27 @@ useEffect(() => {
         diemCuoiki: finalDck,
         trangThai: trangthai,
       });
+      const updatedHocVien = detailState.hocvien.map((hv) =>
+  hv.manguoidung === changeMark.manguoidung
+    ? {
+        ...hv,
+        diemkiemtra: finalDqt,
+        diemdiemcuoiki: finalDck,
+        trangThai: trangthai,
+      }
+    : hv
+);
 
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/lophoc/thongtinlopkemdanhsanhhocsinhvagiangvien/${detailState.malop}`
-      );
+setDetailState((prev) => ({
+  ...prev,
+  hocvien: updatedHocVien,
+}));
 
-      setDetailState(res.data);
+      // const res = await axios.get(
+      //   `http://localhost:8080/api/v1/lophoc/thongtinlopkemdanhsanhhocsinhvagiangvien/${detailState.malop}`
+      // );
+
+      // setDetailState(res.data);
 
       toast.success("Cập nhật thành công");
       setChangeMark(null);
@@ -464,7 +626,7 @@ useEffect(() => {
       alert("Đã xảy ra lỗi: " + err.message);
     }
   };
-
+  //Hàm tự động
   function DeleteClasses() {
     if (!detailState) return;
 
@@ -484,10 +646,11 @@ useEffect(() => {
     const soHocVienDangHoc = detailState.hocvien.filter(
       (hv) => hv.trangThai === "Đang Học"
     ).length;
-    console.log("Số học viên đang học:", soHocVienDangHoc);
-    // Hiển thị cảnh báo nếu trong 2 ngày đầu và số học viên < 10
+    if (ngayKhaiGiangPlus2 < today) {
+      return;
+    }
     if (
-      (today >= ngayKhaiGiang &&
+      (
         today <= ngayKhaiGiangPlus2 &&
         soHocVienDangHoc < 10) ||
       (today >= ngayKhaiGiangPlus1 && soHocVienDangHoc < 10)
@@ -495,13 +658,11 @@ useEffect(() => {
       return (
         <div style={{ color: "red", marginBottom: "15px" }}>
           Cảnh báo: Lớp chỉ có {soHocVienDangHoc} học viên, không đủ điều kiện
-          để học. Lớp sẽ tự xóa sau ngày {convertDate(ngayKhaiGiangPlus2)}
+          để học. Hãy xác định có mở lớp không sau ngày {convertDate(ngayKhaiGiang)}
         </div>
       );
     }
-    if (ngayKhaiGiangPlus2 < today) {
-      return;
-    }
+    
     // Tự động xóa lớp nếu quá 2 ngày và học viên < 10
     // if (today > ngayKhaiGiangPlus2 && soHocVienDangHoc < 10) {
     //   axios.delete(`http://localhost:8080/api/v1/lophoc/${detailState.malop}`)
@@ -601,8 +762,56 @@ const handleOpenEdit = () => {
 };
 const handleDeleteClass = async () => {
   if (!window.confirm("Bạn có chắc chắn muốn xóa lớp học này không?")) return;
-
   try {
+    // 1. Lấy danh sách học viên có trạng thái "Đang Học"
+    const hocVienDangHoc = detailState.hocvien.filter(
+      (hv) => hv.trangThai === "Đang Học"
+    );
+    console.log("Danh sách học viên đang học:", hocVienDangHoc);
+    // 2. Lấy toàn bộ danh sách xác nhận từ API
+    const resXacNhan = await axios.get("http://localhost:8080/api/v1/xacnhan");
+    const danhSachXacNhan = resXacNhan.data;
+
+    
+    for (const hv of hocVienDangHoc) {
+      try {
+        // Tìm đơn xác nhận phù hợp
+        const matchedXacNhan = danhSachXacNhan.find(
+          (xacnhan) =>
+            xacnhan.hoten === hv.hoten &&
+            xacnhan.email === hv.email &&
+            xacnhan.sdt === hv.sdt &&
+            xacnhan.gioitinh === hv.gioitinh &&
+            xacnhan.tenlophoc === detailState.tenlophoc // Thêm điều kiện kiểm tra tên lớp trùng khớp
+        );
+        console.log(`Đang xử lý học viên: ${hv.hoten}`);
+        console.log("Đơn xác nhận tìm thấy:", matchedXacNhan);
+        if (matchedXacNhan) {
+        
+          await axios.put(
+            `http://localhost:8080/api/v1/xacnhan/${matchedXacNhan.maxacnhan}`,
+            {
+              ngaygui: new Date().toISOString().slice(0, 10),
+              hoten: hv.hoten,
+              ngaysinh: matchedXacNhan.ngaysinh,
+              gioitinh: hv.gioitinh,
+              sdt: hv.sdt,
+              diachi: hv.diachi,
+              email: hv.email,
+              tenlophoc: null,
+              tenkhoahoc: detailState.tenkhoahoc, // Giữ nguyên khóa học 
+              trangthai: "Chờ Xác Nhận" // Cập nhật trạng thái
+            }
+          );
+          console.log(`Đã cập nhật đơn xác nhận cho học viên ${hv.hoten}`);
+        } else {
+          console.log(`Không tìm thấy đơn xác nhận phù hợp cho học viên ${hv.hoten} trong lớp ${detailState.tenlophoc}`);
+        }
+      } catch (error) {
+        console.error(`Lỗi khi cập nhật đơn xác nhận cho học viên ${hv.hoten}:`, error);
+      }
+    }
+
     await axios.delete(`http://localhost:8080/api/v1/lophoc/${detailState.malop}`);
     alert("Xóa lớp học thành công!");
     refreshClasses();
@@ -635,7 +844,7 @@ const handleDeleteClass = async () => {
                   <h1>Học viên: {changeMark.hoten}</h1>
                 </div>
                 <div className={classes.mark}>
-                  <label htmlFor="dqt">Điểm quá trình</label>
+                  <label htmlFor="dqt">Điểm lần 1</label>
                   <input
                     type="number"
                     step="0.1"
@@ -643,7 +852,7 @@ const handleDeleteClass = async () => {
                     id="dqt"
                     onChange={(e) => setDqt(e.target.value)}
                   />
-                  <label htmlFor="dck">Điểm cuối kì</label>
+                  <label htmlFor="dck">Điểm lần 2</label>
                   <input
                     type="number"
                     step="0.1"
@@ -676,7 +885,7 @@ const handleDeleteClass = async () => {
               columns={columns}
               data={exportData}
               fileName={`DiemLop_${detailState.tenlophoc}`}
-              title="Danh sách sinh viên đang học tại trung tâm"
+              title={`Danh sách điểm của học viên lớp ${detailState.tenlophoc}`}
             />
           </div>
           <table className={classes.bangdiem}>
@@ -684,8 +893,8 @@ const handleDeleteClass = async () => {
               <tr>
                 <th>STT</th>
                 <th>Tên</th>
-                <th>Điểm quá trình</th>
-                <th>Điểm cuối kì</th>
+                <th>Điểm lần 1</th>
+                <th>Điểm lần 2</th>
                 <th>Điểm tổng kết</th>
                 <th>Trạng thái</th>
               </tr>
@@ -697,7 +906,7 @@ const handleDeleteClass = async () => {
 
                 return (
                   <tr
-                    key={hv.manguoidung}
+                    key={`${hv.manguoidung}-${hv.diemkiemtra}-${hv.diemdiemcuoiki}`}
                     className={
                       hv.trangThai === "Chuyển Lớp" ? classes.inactiveRow : ""
                     }
@@ -723,6 +932,107 @@ const handleDeleteClass = async () => {
               })}
             </tbody>
           </table>
+        </>
+      ) : isAttendance ? (
+        <>
+          <div className={classes.header}>
+            <h1>Điểm danh lớp {detailState.tenlophoc}</h1>
+            <button onClick={() => setIsAttendance(false)}>Quay lại</button>
+          </div>
+          <ExcelExport
+      columns={attendanceColumns}
+      data={exportAttendanceData}
+      fileName={`DiemDanh_${detailState.tenlophoc}`}
+      title={`Danh sách điểm danh giáo viên ${detailState.giangVien?.[0]?.hoten || "Chưa có giáo viên"} - Lớp ${detailState.tenlophoc}`}
+    />
+          <table className={classes.bangdiem}>
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Ngày học</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Ghi chú</th>
+                <th>Loại</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendanceList.map((att, index) => (
+                <tr 
+                  key={att.maDiemDanh}
+                  onClick={() => handleSelectAttendance(att)}
+                  className={selectedAttendance?.maDiemDanh === att.maDiemDanh ? classes.selectedRow : ""}
+                >
+                  <td>{index + 1}</td>
+                  <td>{new Date(att.ngayHoc).toLocaleDateString()}</td>
+                  <td>
+                    {new Date(att.thoiGianDiemDanh).toLocaleTimeString()}
+                  </td>
+                  <td>{att.trangThai}</td>
+                  <td>{att.ghiChu || "Không có ghi chú"}</td>
+                  <td>{att.isBu ? "Dạy bù" : "Bình thường"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {role === "admin" && showEditModal && selectedAttendance && (
+            <div className={classes.modalContainer} onClick={() => setShowEditModal(false)}>
+              <div className={classes.modalWrapper} onClick={(e) => e.stopPropagation()}>
+                <h2>Sửa điểm danh ngày {new Date(selectedAttendance.ngayHoc).toLocaleDateString()}</h2>
+                
+                <div className={classes.formGroup}>
+                  <label>Trạng thái:</label>
+                  <select
+                    value={editAttendance.trangThai}
+                    onChange={(e) => setEditAttendance({
+                      ...editAttendance,
+                      trangThai: e.target.value
+                    })}
+                  >
+                    <option value="Chưa điểm danh">Chưa điểm danh</option>
+                    <option value="Có mặt">Có mặt</option>
+                    <option value="Vắng mặt">Vắng mặt</option>
+                    <option value="Đi muộn">Đi muộn</option>
+                    <option value="Hủy lớp">Hủy lớp</option>
+                  </select>
+                </div>
+                
+                <div className={classes.formGroup}>
+                  <label>Ghi chú:</label>
+                  <input
+                    type="text"
+                    value={editAttendance.ghiChu}
+                    onChange={(e) => setEditAttendance({
+                      ...editAttendance,
+                      ghiChu: e.target.value
+                    })}
+                  />
+                </div>
+                
+                {editAttendance.trangThai === "Hủy lớp" && (
+                  <div className={classes.formGroup}>
+                    <label>Ngày dạy bù:</label>
+                    <Flatpickr
+                      value={editAttendance.ngayDayBu || new Date()}
+                      onChange={([date]) => setEditAttendance({
+                        ...editAttendance,
+                        ngayDayBu: date
+                      })}
+                      options={{
+                        dateFormat: "d-m-Y",
+                      }}
+                    />
+                  </div>
+                )}
+                
+                <div className={classes.buttonGroup}>
+                  <button onClick={() => setShowEditModal(false)}>Hủy</button>
+                  <button onClick={handleUpdateAttendance}>Lưu</button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -762,7 +1072,8 @@ const handleDeleteClass = async () => {
           </h2>
           {role !== "Học Viên" && (
             <>
-              <DeleteClasses />
+            {role === "admin" && (
+              <DeleteClasses />)}
               <button
                 id={classes.xemdiem_btn}
                 onClick={() => setIsMarking(true)}
@@ -773,8 +1084,20 @@ const handleDeleteClass = async () => {
                 <button id={classes.sua_btn} onClick={handleOpenEdit}>
                   Sửa thông tin lớp
                 </button>
+                
               )}
-
+              <button
+              id={classes.diemdanh_btn}
+              onClick={() => setIsAttendance(true)}
+            >
+              Quản lý điểm danh
+            </button>
+              <ExcelExport
+              columns={columnss}
+              data={detailState.hocvien}
+              fileName={`DanhSachLop_${detailState.tenlophoc}`}
+              title={`Danh sách học viên đang học tại lớp ${detailState.tenlophoc}`}
+            />
               <table>
                 <thead>
                   <tr>

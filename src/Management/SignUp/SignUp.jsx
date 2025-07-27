@@ -182,7 +182,7 @@ const SignUp = () => {
                         <td>{signup.sdt}</td>
                         <td>{signup.diachi}</td>
                         <td>{getDate(signup.ngaygui)}</td>
-                        <td>{signup.diemthithu || "Chưa test"}</td>
+                        <td>{signup.diemthithu }</td>
                         <td>{signup.ngaythithu || "Chưa test"}</td>
                         <td>{signup.trinhdodudoan || "Chưa test"}</td>
                         <td>{signup.trangthai}</td>

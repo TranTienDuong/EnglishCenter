@@ -37,7 +37,7 @@ const ExamResult = ({ userInfo, questions, answers, timeUsed }) => {
 
   const correctAnswers = resultData.cautraloidung;
   //const totalQuestions = resultData.tongsocauhoi;
-  const percentage = parseFloat(((correctAnswers * 100) / 60).toFixed(2));
+  const percentage = parseFloat(((resultData.tongsocauhoi * 100) / 60).toFixed(2));
 
   return (
     <div className={styles.resultContainer}>

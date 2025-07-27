@@ -80,10 +80,10 @@
 .passageBlock {
   background: #f1f5f9;
   padding: 1.25rem 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   border-left: 6px solid #3b82f6;
   border-radius: 8px;
-
+  margin-top: -10px;
   h4 {
     margin-bottom: 0.75rem;
     color: #2563eb;
@@ -190,7 +190,7 @@
 }
 
 .navButton:hover:not(:disabled) {
-  background-color: #e0e0e0;
+  background-color: #3b82f6;
 }
 
 .navButton:disabled {
@@ -210,7 +210,7 @@
   box-shadow: 0 6px 14px rgba(45, 142, 71, 0.6);
 }
 
-/* Nút nộp bài ở header bên trên (nút nhỏ hơn) */
+
 .submitTopButton {
   padding: 10px 22px;
   font-size: 1rem;
@@ -230,4 +230,21 @@
   font-size: 1.4rem;
   color: #666;
   margin-top: 80px;
+}
+.timeWarning {
+  background-color: #ffeb3b;
+  color: #d32f2f;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  margin-top: -20px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }

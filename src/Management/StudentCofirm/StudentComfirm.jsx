@@ -9,6 +9,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loader from "../../assets/Loader/Loader";
+import { format } from "date-fns";
+
 
 const StudentComfirm = () => {
   const [studentConfirm, setStudentConfirm] = useState([]);
@@ -53,17 +55,18 @@ const StudentComfirm = () => {
         console.log("Error fetching class info: ", err);
         checkIfLoadingComplete(); // Even on error, proceed
       });
-
   }, []);
   const fetchTestResults = async (email, phone) => {
-  try {
-    const res = await axios.get(`http://localhost:8080/api/v1/ketquathithu/ketqua/${email}/${phone}`);
-    return res.data;
-  } catch (error) {
-    console.error("Error fetching test results:", error);
-    return null;
-  }
-};
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/ketquathithu/ketqua/${email}/${phone}`
+      );
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching test results:", error);
+      return null;
+    }
+  };
   useEffect(() => {
     setStudentNotConfirm(
       studentConfirm.filter(
@@ -72,6 +75,20 @@ const StudentComfirm = () => {
       )
     );
   }, [studentConfirm]);
+  useEffect(() => {
+  if (choosenConfirmInfo && testResults[choosenConfirmInfo.maxacnhan]?.trinhdodudoan) {
+    const courses = determineCourse(testResults[choosenConfirmInfo.maxacnhan].trinhdodudoan);
+    if (courses.length > 0) {
+      // Tự động chọn khóa học đầu tiên nếu chỉ có 1 lựa chọn
+      const newCourse = courses[0];
+      setChoosenConfirmInfo(prev => ({
+        ...prev,
+        tenkhoahoc: newCourse
+      }));
+      filterClass(newCourse);
+    }
+  }
+}, [choosenConfirmInfo?.maxacnhan, testResults]);
 
   console.log("Hien ", studentNotConfirm);
 
@@ -79,19 +96,19 @@ const StudentComfirm = () => {
     return <Loader />;
   }
 
-  const handleConfirmDetail = async  (confirm) => {
+  const handleConfirmDetail = async (confirm) => {
     setIsShowingInfo((prev) =>
       prev === confirm.maxacnhan ? null : confirm.maxacnhan
     );
     if (confirm.trangthai === "Chờ Xác Nhận") {
-    const results = await fetchTestResults(confirm.email, confirm.sdt);
-    if (results) {
-      setTestResults(prev => ({
-        ...prev,
-        [confirm.maxacnhan]: results
-      }));
+      const results = await fetchTestResults(confirm.email, confirm.sdt);
+      if (results) {
+        setTestResults((prev) => ({
+          ...prev,
+          [confirm.maxacnhan]: results,
+        }));
+      }
     }
-  }
   };
 
   const filterClass = (courseName) => {
@@ -101,7 +118,6 @@ const StudentComfirm = () => {
       )
     );
   };
-
   const handleConfirmStudent = async () => {
     try {
       if (choosenConfirmInfo.trangthai === "Học Tiếp") {
@@ -203,7 +219,21 @@ const StudentComfirm = () => {
     );
     return matched || shortName;
   };
-
+  const determineCourse = (level) => {
+    if (!level) return courseList;
+  switch(level) {
+    case "Beginner":
+      return ["Khóa IELTS mất gốc", "Khóa IELTS cấp tốc"];
+    case "5.0-5.5":
+      return ["Khóa IELTS 5.0-5.5"];
+    case "6.0-6.5":
+      return ["Khóa IELTS 6.0-6.5"];
+    case "7.0+":
+      return ["Khóa IELTS 7.0+"];
+    default:
+      return courseList; // Nếu không xác định được thì hiển thị tất cả
+  }
+};
   return (
     <div className={classes.container}>
       <h1>Xác nhận học viên</h1>
@@ -256,7 +286,7 @@ const StudentComfirm = () => {
                     Họ tên: <span>{confirm.hoten}</span>
                   </p>
                   <p>
-                    Ngày sinh: <span>{confirm.ngaysinh}</span>
+                    Ngày sinh: <span>{format(confirm.ngaysinh, 'dd-MM-yyyy')}</span>
                   </p>
                   <p>
                     Giới tính: <span>{confirm.gioitinh}</span>
@@ -271,22 +301,31 @@ const StudentComfirm = () => {
                     Email: <span>{confirm.email}</span>
                   </p>
                   <p>
-                    Ngày gửi: <span>{confirm.ngaygui}</span>
+                    Ngày gửi: <span>{format(confirm.ngaygui, 'dd-MM-yyyy')}</span>
                   </p>
-                  {confirm.trangthai === "Chờ Xác Nhận" && testResults[confirm.maxacnhan] && (
-    <div className={classes.test_results}>
-      <p>
-        Điểm thi: <span>{testResults[confirm.maxacnhan].diem || 'Chưa có'}</span>
-      </p>
-    </div>
-  )}
-  {confirm.trangthai === "Chờ Xác Nhận" && testResults[confirm.maxacnhan] && (
-    <div className={classes.test_results}>
-      <p>
-        Trình độ dự đoán: <span>{testResults[confirm.maxacnhan].trinhdodudoan || 'Chưa có'}</span>
-      </p>
-    </div>
-  )}
+                  {confirm.trangthai === "Chờ Xác Nhận" &&
+                    testResults[confirm.maxacnhan] && (
+                      <div className={classes.test_results}>
+                        <p>
+                          Điểm thi:{" "}
+                          <span>
+                            {testResults[confirm.maxacnhan].diem || "Chưa có"}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  {confirm.trangthai === "Chờ Xác Nhận" &&
+                    testResults[confirm.maxacnhan] && (
+                      <div className={classes.test_results}>
+                        <p>
+                          Trình độ dự đoán:{" "}
+                          <span>
+                            {testResults[confirm.maxacnhan].trinhdodudoan ||
+                              "Chưa có"}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                   <p>
                     Khóa học đăng ký:{"  "}
                     <select
@@ -301,11 +340,19 @@ const StudentComfirm = () => {
                         filterClass(newCourse);
                       }}
                     >
-                      {courseList.map((course) => (
-                        <option key={course} value={course}>
-                          {course}
-                        </option>
-                      ))}
+                      {testResults[confirm.maxacnhan]?.trinhdodudoan ? (
+      determineCourse(testResults[confirm.maxacnhan].trinhdodudoan).map((course) => (
+        <option key={course} value={course}>
+          {course}
+        </option>
+      ))
+    ) : (
+      courseList.map((course) => (
+        <option key={course} value={course}>
+          {course}
+        </option>
+      ))
+    )}
                     </select>
                   </p>
                   <select
@@ -317,6 +364,7 @@ const StudentComfirm = () => {
                         tenlophoc: e.target.value,
                       }))
                     }
+                    value={choosenConfirmInfo?.tenlophoc || ""}
                   >
                     {choosenClass && choosenClass.length > 0 ? (
                       <>
@@ -349,7 +397,7 @@ const StudentComfirm = () => {
                             } else {
                               return null;
                             }
-                          });
+                          }).filter(Boolean);
 
                           if (!hasClassesInRange) {
                             return (

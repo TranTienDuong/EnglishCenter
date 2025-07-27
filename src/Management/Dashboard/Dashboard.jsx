@@ -106,7 +106,7 @@ const Dashboard = () => {
       <div
         className={classes.left}
         style={{
-          width: isSidebarOpen ? "20%" : "0",
+          width: isSidebarOpen ? "17%" : "0",
         }}
       >
         <div
